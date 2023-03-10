@@ -1,26 +1,56 @@
-# ignore everything in the root except the "wp-content" directory.
-!wp-content/
+# WordPress #
+############
+wp-config-local.php
+wp-cli.local.yml
+wp-content/uploads/
+wp-content/blogs.dir/
+wp-content/upgrade/
+wp-content/uploads/
+wp-content/backup-db/
+wp-content/updraft/
+wp-content/backupwordpress-*/
+wp-content/managewp/backups/
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+sitemap.xml
+sitemap.xml.gz
+.htaccess
+.vs
 
-# ignore everything in the "wp-content" directory, except:
-# "mu-plugins", "plugins", "themes" directory
-wp-content/*
-!wp-content/mu-plugins/
-!wp-content/plugins/
-!wp-content/themes/
+# @TODO writable paths
+wp-content/cache/
+wp-content/backups/
 
-# ignore these plugins
-wp-content/plugins/hello.php
+# Packages #
+############
+*.7z
+*.dmg
+*.gz
+*.bz2
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+*.tgz
+!wp-includes/**/*.gz
 
-# ignore specific themes
-wp-content/themes/twenty*/
-
-# ignore node dependency directories
-node_modules/
-
-# ignore log files and databases
+# Logs and databases #
+######################
 *.log
 *.sql
-*.sqlite
 
-# ignore database settings
-wp-config.php
+# OS generated files #
+######################
+.DS_Store*
+ehthumbs.db
+Thumbs.db
+._*
+
+# Vim generated files #
+######################
+*.un~
+
+# SASS #
+##########
+.sass-cache
