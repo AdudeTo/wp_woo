@@ -36,7 +36,7 @@ if ( file_exists( dirname( __FILE__ ) . '/wp-config-local.php' )) {
 	/** Database password */
 	define( 'DB_PASSWORD', '' );
 	
-	/** Database hostname */
+	/** Database hostname  */
 	define( 'DB_HOST', 'localhost' );
 	
 	/** Database charset to use in creating database tables. */
