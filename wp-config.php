@@ -19,7 +19,7 @@
  */
 
 // ** Database settings - You can get this info from your web host ** //
-/** The name of the database for WordPress */
+/** The name of the database for WordPress 123 */
 define( 'DB_NAME', 'wp_woo' );
 
 /** Database username */
