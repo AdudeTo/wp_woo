@@ -2,10 +2,14 @@
 
 /**
  * Plugin Name: Yara
+ * Plugin URI: 
  * Description: Yara Code Challenge
  * Version: 1.0.0
  * Author: Vicho Vichev
  * Author URI: https://vichev.art
+ * Requires PHP: 7.1
+ *
+ * @package YaraPlugin
  */
 
 function yara_code_challenge_setup_menu()
@@ -81,15 +85,3 @@ function yara_get_data()
 }
 
 ?>
-<!--
-[id] => 1
-    [title] => iPhone 9
-    [description] => An apple mobile which is nothing like apple
-    [price] => 549
-    [discountPercentage] => 12.96
-    [rating] => 4.69
-    [stock] => 94
-    [brand] => Apple
-    [category] => smartphones
-    [thumbnail] => https://i.dummyjson.com/data/products/1/thumbnail.jpg
-    [images] -->
