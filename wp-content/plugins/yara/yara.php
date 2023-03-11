@@ -21,13 +21,9 @@ function yara_code_challenge_setup_menu()
 
 add_action('admin_menu', 'yara_code_challenge_setup_menu');
 
-
-
-
 function yara_init()
 {
     if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
-
         yara_get_data();
     } else {
         echo "You need to install woocomerce!";
@@ -38,22 +34,14 @@ function yara_get_data()
 {
 
     $api_url = 'https://dummyjson.com/products';
-
     // Read JSON file
     $json_data = file_get_contents($api_url);
-
-
-
-
     // Decode JSON data into PHP array
     $response_data = json_decode($json_data);
-
-
     // All user data exists in 'data' object
     $products_data = $response_data->products;
-
     // Cut long data into small & select only first 10 records
-    //$products_data = array_slice($products_data, 0, 2);
+    $products_data = array_slice($products_data, 0, 2);
 
     // Print data if need to debug
     // echo "<pre>";
@@ -75,12 +63,7 @@ function yara_get_data()
         //echo "name: ".$product->employee_age;
         //echo "<br /> <br />";
 
-
-
-
-
-
-$mypostExist = post_exists($product->title);
+        $mypostExist = post_exists($product->title);
         $my_yara_product_post = array(
             'post_title'    => $product->title,
             'post_content'  =>  $product->description,
@@ -88,37 +71,20 @@ $mypostExist = post_exists($product->title);
             'post_type'   => 'product',
             'post_author'   => 1
         );
-      
-        if ($mypostExist == NULL){
-            echo "is null";
-            wp_insert_post( $my_yara_product_post );
 
-        }else {
-
+        if ($mypostExist == NULL) {            
+            wp_insert_post($my_yara_product_post);
+        } else {
             //Update the post
         }
 
         echo "----------------------------------------------------------------";
         echo "<br /><br />";
+        // Insert the post into the database
 
-
-
-          
-          // Insert the post into the database
-         
     }
     echo "</pre>";
 }
-
-
-
-
-
-
-
-
-
-
 
 ?>
 <!--
