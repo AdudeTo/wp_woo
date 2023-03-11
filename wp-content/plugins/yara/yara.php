@@ -2,17 +2,11 @@
 
 /**
  * Plugin Name: Yara
- * Plugin URI: 
  * Description: Yara Code Challenge
  * Version: 1.0.0
  * Author: Vicho Vichev
  * Author URI: https://vichev.art
- * Requires PHP: 7.1
- *
- * @package YaraPlugin
  */
-
-defined('ABSPATH') || exit;
 
 function yara_code_challenge_setup_menu()
 {
@@ -33,7 +27,7 @@ function yara_init()
 function yara_get_data()
 {
 
-    $api_url = 'https://dummyjson.com/products';
+    $api_url = 'http://dummyjson.com/products';
     // Read JSON file
     $json_data = file_get_contents($api_url);
     // Decode JSON data into PHP array
