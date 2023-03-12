@@ -64,7 +64,7 @@ function bg_image_upload($url,$productTitle)
             $type = $results['type']; // MIME type of the file
             $wp_upload_dir = wp_upload_dir(); // Get the path to the upload directory.
             $attachment = array(
-                //FIX - 4 // - Avoid Long Name  //
+                //FIX - 4 // - Avoid Long Name  // 
                 'post_title' => preg_replace('/\.[^.]+$/', '', basename($productTitle)) . preg_replace('/\.[^.]+$/', '', basename($filename)),
                 'post_mime_type' => $type,
                 'post_status' => 'inherit',
@@ -166,7 +166,7 @@ function yara_get_data()
             //BUG - 1 // post_category WOO products do not use default categories !!!
             do_action('add_term_relationship', $myNewPost, $productCategory, 0);
         } else {
-            
+
             //echo "POST WAS UPDATED";
             //print_r($updateThewPost);
             //echo "<br />";            
