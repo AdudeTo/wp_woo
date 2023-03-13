@@ -32,30 +32,7 @@ function yara_init()
 }
 
 
-/**
- * Register an attribute taxonomy.
- */
-function so_29549525_create_attribute_taxonomies()
-{
 
-    $attributes = wc_get_attribute_taxonomies();
-
-    $slugs = wp_list_pluck($attributes, 'attribute_name');
-
-    if (!in_array('my_PPcolor', $slugs)) {
-
-        $args = array(
-            'slug'    => 'my_PPcolor',
-            'name'   => __('My PPColor', 'your-textdomain'),
-            'type'    => 'select',
-            'orderby' => 'menu_order',
-            'has_archives'  => false,
-        );
-
-        $result = wc_create_attribute($args);
-    }
-}
-//add_action( 'admin_init', 'so_29549525_create_attribute_taxonomies' );
 
 
 
@@ -111,20 +88,19 @@ function bg_image_upload($url, $productTitle)
 
 
 $yaraMainProduct = array("ID" => 0, "title" => "none");
-$testPost = get_post(1);
-$testPostMeta = get_post_meta(1);
-$testPostMetaB = wc_get_order(1);
+$yaraMainWooProduct;
+$yaraVariationWooProduct = 0;
 
 
-
-function pricode_create_product()
+function pricode_create_product($data)
 {
+
     $product = new WC_Product_Variable();
-    $product->set_description('T-shirt variable description');
-    $product->set_name('T-shirt variable');
-    $product->set_sku('test-shirt');
-    $product->set_price(1);
-    $product->set_regular_price(1);
+    $product->set_description($data['post_content']);
+    $product->set_name($data['post_title']);
+    $product->set_sku($data['post_content']);
+    $product->set_price($data['post_price']);
+    $product->set_regular_price($data['post_price']);
     $product->set_stock_status();
     $product->save();
     return $product;
@@ -138,6 +114,9 @@ function pricode_create_product()
  */
 function pricode_create_attributes($name, $options)
 {
+
+
+
     $attribute = new WC_Product_Attribute();
     $attribute->set_id(0);
     $attribute->set_name($name);
@@ -176,75 +155,14 @@ function pricode_create_variations($product_id, $values, $data)
 
 
 
+
+
 function yara_get_data()
 {
-    
-    //Adding product
-    $product = pricode_create_product();
 
-    //Creating Attributes 
-    $atts = [];
-    $atts[] = pricode_create_attributes('color', ['red', 'green']);
-    $atts[] = pricode_create_attributes('size', ['S', 'M']);
-
-    //Adding attributes to the created product
-    $product->set_attributes($atts);
-    $product->save();
-
-    //Setting data (following Alexander's rec
-    $data = new stdClass();
-    $data->sku = 'sku-123';
-    $data->price = '10';
-    //Create variations
-    pricode_create_variations($product->get_id(), ['color' => 'red', 'size' => 'M'], $data);
-
-    $dataB = new stdClass();
-    $dataB->sku = 'sku-1235';
-    $dataB->price = '15';
-    pricode_create_variations($product->get_id(), ['color' => 'green', 'size' => 'S'], $dataB);
-}
+    global $yaraMainProduct, $yaraMainWooProduct, $yaraVariationWooProduct;
 
 
-
-function yara_get_data555()
-{
-
-    global $wpdb;
-    $yara_term_variable = term_exists('variable');
-
-    if (!$yara_term_variable) {
-        $yara_term_variable = wp_create_term('variable')['term_id'];
-    }
-    echo "</br>";
-    echo "------------------------------------------------------------------";
-    echo $yara_term_variable;
-    echo "------------------------------------------------------------------";
-    echo "</br>";
-
-
-    //updateProductAttributes();
-    //so_29549525_create_attribute_taxonomies();
-
-    global $yaraMainProduct, $testPost, $testPostMeta, $testPostMetaB;
-    echo "<pre>";
-    echo "</br>";
-    echo "------------------------------------------------------------------";
-
-
-    print_r($testPostMetaB);
-    print_r($testPostMeta['_product_attributes'][0]);
-    $dataTest = $testPostMeta['_product_attributes'][0];
-    echo "</br>";
-    $newData = json_decode($dataTest);
-
-    echo ($newData);
-
-
-
-
-    echo "</br>";
-    echo "------------------------------------------------------------------";
-    echo "</pre>";
 
 
 
@@ -252,7 +170,7 @@ function yara_get_data555()
     $json_data = file_get_contents($api_url); // Read JSON file    
     $response_data = json_decode($json_data); // Decode JSON data into PHP array   
     $products_data = $response_data->products; // All user data products in 'data' object    
-    //$products_data = array_slice($products_data, 0, 3); // FOR DEBUG !!! Cut long data into small & select only first few records
+    $products_data = array_slice($products_data, 0, 3); // FOR DEBUG !!! Cut long data into small & select only first few records
 
     // Print data if need to debug
     //echo "<pre>";
@@ -261,6 +179,8 @@ function yara_get_data555()
 
     echo "<pre>";
     // Traverse array and display data
+    $atts = [];
+    $names = [];
     foreach ($products_data as $index => $product) {
         //print_r($product);
         $mainProduct = 0;
@@ -289,6 +209,7 @@ function yara_get_data555()
 
 
         $productCategory = category_exists($product->category);
+        $names[] = $product->title;
 
         echo "category exist ?: " . $productCategory;
         echo "<br />";
@@ -313,9 +234,89 @@ function yara_get_data555()
         } else {
             $yara_post_type = 'product_variation';
             $yara_post_parent = $yaraMainProduct['ID'];
+
+            //create variations
+            if ($yaraVariationWooProduct == 0) {
+
+
+                //$atts[] = pricode_create_attributes('color', ['red', 'green']);
+                $yaraVariationWooProduct++;
+                //Adding attributes to the created product
+
+
+
+
+            } else if ($yaraVariationWooProduct == 1) {
+
+                //Creating Attributes 
+                /*
+               
+                    $atts = [];
+                    $atts[] = pricode_create_attributes('col_or', ['red cato', 'green mnogo green po4ti 5']);
+                   
+                    //Adding attributes to the created product
+                    $yaraMainWooProduct->set_attributes($atts);
+                    $yaraMainWooProduct->save();
+
+                    //Setting data (following Alexander's rec
+                    $data = new stdClass();
+                    $data->sku = 'sku-123';
+                    $data->price = '10';
+                    //Create variations
+                    pricode_create_variations($yaraMainWooProduct->get_id(), ['col_or' => 'red cato'], $data);
+
+                    $dataB = new stdClass();
+                    $dataB->sku = 'sku-1235';
+                    $dataB->price = '15';
+                    pricode_create_variations($yaraMainWooProduct->get_id(), ['col_or' => 'green mnogo green po4ti 5',], $dataB);
+                  */
+
+
+
+                $anOption = strtolower(str_replace(' ', '_', $names[0]));
+
+
+                $atts[] = pricode_create_attributes($anOption, $names);
+
+                $yaraMainWooProduct->set_attributes($atts);
+                $yaraMainWooProduct->save();
+
+
+                echo "<pre>";
+                print_r($yaraMainWooProduct);
+                echo "</pre>";
+
+               
+
+
+                $options_data = new stdClass();
+                $options_data->sku = $names[0];
+                $options_data->price = '10';
+                //Create variations
+                pricode_create_variations($yaraMainWooProduct->get_id(), [$anOption => $names[0]], $options_data);
+
+                $options_data = new stdClass();
+                $options_data->sku = $names[1];
+                $options_data->price = '15';
+                //Create variations
+                pricode_create_variations($yaraMainWooProduct->get_id(), [$anOption => $names[1]], $options_data);
+
+                $options_data = new stdClass();
+                $options_data->sku = $names[2];
+                $options_data->price = '20';
+                //Create variations
+                pricode_create_variations($yaraMainWooProduct->get_id(), [$anOption => $names[2]], $options_data);
+
+
+
+
+                $yaraVariationWooProduct = 0;
+                $atts = [];
+                $names = [];
+            }
         }
 
-        
+
         $my_yara_product_post = array(
             'post_title'    => $product->title,
             'post_content'  =>  $product->description,
@@ -323,19 +324,29 @@ function yara_get_data555()
             'post_type'   => $yara_post_type,
             'post_parent'   => $yara_post_parent,
             'post_category' => array($productCategory),
+            'post_price' => $product->price,
             'post_author'   => 1
         );
 
         if ($mypostExist == NULL) {
-            $myNewPost = wp_insert_post($my_yara_product_post);
+            //$myNewPost = wp_insert_post($my_yara_product_post);
             if ($mainProduct) {
-                $yaraMainProduct['ID'] = $myNewPost;
+                //$yaraMainProduct['ID'] = $myNewPost;
+                $yaraMainWooProduct = pricode_create_product($my_yara_product_post);
+
+
+                echo "PPR:::";
             }
+            $myNewPost = post_exists($product->title);
 
 
             // add_post_meta( int $post_id, string $meta_key, mixed $meta_value, bool $unique = false ): int|false
             //FIX - 1 // - scrap/send more data Alternative Text,Caption,Description//
             if ($product->images[0]) {
+
+
+
+
                 //FIX - 2 // - check if already Exist !!! //
                 //FIX - 3 // - Set Some !!!DELAY!!! (write in loop) //
                 $myProductImageId = bg_image_upload($product->images[0], $product->title);
@@ -352,50 +363,8 @@ function yara_get_data555()
             echo "<br />";
 
             //BUG - 1 // post_category WOO products do not use default categories !!!
-            do_action('add_term_relationship', $myNewPost, $productCategory, 0);
-        } else {
-
-            //echo "POST WAS UPDATED";
-            //print_r($updateThewPost);
-            //echo "<br />";            
-
-            //Update the post
-        }
-
-        // Insert/update Meta
-
-
-
-
-
-        if (!add_post_meta($myNewPost, '_regular_price', $product->price, true)) {
-            update_post_meta($myNewPost, '_regular_price', $product->price);
-        }
-
-        if (!add_post_meta($myNewPost, '_price', $product->price, true)) {
-            update_post_meta($myNewPost, '_price', $product->price);
-        }
-        if ($mainProduct) {
-            do_action('add_term_relationship',  $yaraMainProduct['ID'], $yara_term_variable);
-            //$sql = $wpdb->INSERT('wp_term_relationships', array('object_id' => $yaraMainProduct['ID'], 'term_taxonomy_id' => $yara_term_variable));  //     (`object_id`,`term_taxonomy_id`) values (5,5))";
-            // $wpdb->query($sql);
-
-            $createVariableProduct = 'a:1:{s:3:"new";a:6:{s:4:"name";s:3:"new";s:5:"value";s:9:"1 | 2 | 3";s:8:"position";i:0;s:10:"is_visible";i:1;s:12:"is_variation";i:1;s:11:"is_taxonomy";i:0;}}';
-
-            $sql = $wpdb->INSERT('wp_postmeta', array('post_id' => $yaraMainProduct['ID'], 'meta_key' => '_product_attributes', 'meta_value' => $createVariableProduct));  //     (`object_id`,`term_taxonomy_id`) values (5,5))";
-            $wpdb->query($sql);
-            do_action('add_term_relationship', 5, 3);
-            // $createVariableProduct = "a:1:{s:3:old;a:6:{s:4:name;s:3:old;s:5:value;s:9:4 | 5 | 6;s:8:position;i:0;s:10:is_visible;i:1;s:12:is_variation;i:1;s:11:is_taxonomy;i:0;}}";
-            // if (!add_post_meta($myNewPost, '_product_attributes', $createVariableProduct, true)) {
-            //     update_post_meta($myNewPost, '_price', $createVariableProduct);
-            // }
-        }
-
-
-
-        echo "----------------------------------------------------------------";
-        echo "<br /><br />";
-        // Insert the post into the database
+            // do_action('add_term_relationship', $myNewPost, $productCategory, 0);
+        } 
 
     }
     echo "</pre>";
