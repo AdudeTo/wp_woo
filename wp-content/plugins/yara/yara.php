@@ -51,8 +51,7 @@ function bg_image_upload($url, $productTitle)
         $overrides = array(
             'test_form' => false,
             'test_size' => true,
-        );
-        sleep(2);
+        );        
         $results = wp_handle_sideload($file, $overrides); // Move the temporary file into the uploads directory
 
         if (!empty($results['error'])) {
