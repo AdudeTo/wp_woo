@@ -2,10 +2,10 @@
 ############
 wp-config-local.php
 wp-cli.local.yml
-#wp-content/uploads/
+wp-content/uploads/
 wp-content/blogs.dir/
 wp-content/upgrade/
-#wp-content/uploads/
+wp-content/uploads/
 wp-content/backup-db/
 wp-content/updraft/
 wp-content/backupwordpress-*/
