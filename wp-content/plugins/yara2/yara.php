@@ -16,10 +16,23 @@ define('YARA_CC_VERSION', '1.0.0');
 define('YARA_CC_PATH', plugin_dir_url(__FILE__));
 
 
+// CRON JOB 123
+
+// add custom interval
+function cron_add_minute( $schedules ) {
+	// Adds once every minute to the existing schedules.
+    $schedules['everyfiveminutes'] = array(
+	    'interval' => 300,
+	    'display' => __( 'Once Every 5 Minute' )
+    );
+    return $schedules;
+}
+add_filter( 'cron_schedules', 'cron_add_minute' );
+
 // create a scheduled event (if it does not exist already)
 function cronstarter_activation() {
-	if( !wp_next_scheduled( 'mycronjob' ) ) {  
-	   wp_schedule_event( time(), 'daily', 'mycronjob' );  
+	if( !wp_next_scheduled( 'yara_mycronjob' ) ) {  
+	   wp_schedule_event( time(), 'everyfiveminutes', 'yara_mycronjob' );  
 	}
 }
 // and make sure it's called whenever WordPress loads
@@ -29,41 +42,78 @@ add_action('wp', 'cronstarter_activation');
 // unschedule event upon plugin deactivation
 function cronstarter_deactivate() {	
 	// find out when the last event was scheduled
-	$timestamp = wp_next_scheduled ('mycronjob');
+	$timestamp = wp_next_scheduled ('yara_mycronjob');
 	// unschedule previous event if any
-	wp_unschedule_event ($timestamp, 'mycronjob');
+	wp_unschedule_event ($timestamp, 'yara_mycronjob');
 } 
 register_deactivation_hook (__FILE__, 'cronstarter_deactivate');
 
 // here's the function we'd like to call with our cron job
 function my_repeat_function() {
+
+    global $wpdb;
 	
 	// do here what needs to be done automatically as per your schedule
 	// in this example we're sending an email
 	
 	// components for our email
-	$recepients = 'bbftool@gmail.com';
-	$subject = 'Hello from your Cron Job';
-	$message = 'This is a test mail sent by WordPress automatically as per your schedule.';
+    $current_datetime = current_datetime()->format('Y-m-d H:i:s');
+    $sql = $wpdb->INSERT('wp_yara_products', array('clicks' => 8, 'time' => $current_datetime ));  //     (`object_id`,`term_taxonomy_id`) values (5,5))";
+    $wpdb->query($sql);
+    
+
+
+	//$recepients = 'bbftool@gmail.com';
+	//$subject = 'Hello from your Cron Job';
+	//$message = 'This is a test mail sent by WordPress automatically as per your schedule.';
 	
 	// let's send it 
-	mail($recepients, $subject, $message);
+	//mail($recepients, $subject, $message);
 }
 
 // hook that function onto our scheduled event:
-add_action ('mycronjob', 'my_repeat_function'); 
+add_action ('yara_mycronjob', 'my_repeat_function'); 
 
 
-// add custom interval
-function cron_add_minute( $schedules ) {
-	// Adds once every minute to the existing schedules.
-    $schedules['everyminute'] = array(
-	    'interval' => 300,
-	    'display' => __( 'Once Every Minute' )
-    );
-    return $schedules;
+
+
+// CRON JOB 123
+
+// title category description price image_link image_att_id yara_type wp_id souce_id related_id
+
+
+
+register_activation_hook( __FILE__, 'yara_create_db' );
+function yara_create_db() {
+
+	global $wpdb;
+	$charset_collate = $wpdb->get_charset_collate();
+	$table_name = $wpdb->prefix . 'yara_products';
+
+	$sql = "CREATE TABLE $table_name (
+		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+		views smallint(5) NOT NULL,
+		clicks smallint(5) NOT NULL,
+        title varchar(200) NOT NULL,
+        category varchar(200) NOT NULL,
+        description longtext NOT NULL,
+        price mediumint(9) NOT NULL,
+        image_link longtext NOT NULL,
+        image_att_id mediumint(9) NOT NULL,
+        yara_type varchar(50) NOT NULL,
+        wp_id mediumint(9) NOT NULL,
+        souce_id mediumint(9) NOT NULL,
+        related_id mediumint(9) NOT NULL,
+		UNIQUE KEY id (id)
+	) $charset_collate;";
+
+	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+	dbDelta( $sql );
+
+    $sql = $wpdb->INSERT('wp_yara_products', array('clicks' => 1));  //     (`object_id`,`term_taxonomy_id`) values (5,5))";
+    $wpdb->query($sql);
 }
-add_filter( 'cron_schedules', 'cron_add_minute' );
 
 
 
