@@ -1,6 +1,8 @@
 const yaraMainHolder = document.getElementById('yaraMainHolder');
 const yaraPluginDirUrl = advanced_script_vars['pluginDirUrl'];
 const yaraWPcontentBlock = document.getElementById('wpwrap');
+console.log("init yara page!");
+console.log(yaraMainHolder);
 
 
 let yaraMessagesHeader = '';
@@ -10,6 +12,12 @@ let yaraMessagesBlock, yaraIsMessageActive;
 
 const messagesData = [];
 messagesData['welcome'] = { header: "Yara Plugin Is Active!", content: "Checking Cron Job Status" };
+
+
+
+
+
+
 
 
 function yara_set_cookie(cname, cvalue, exmin) {
@@ -48,8 +56,10 @@ function yara_messages_holder() {
         object_innerHTML_set(yaraMessagesBlock, messagesData['welcome']);
         yaraMessagesBlock.classList.add("yaraMessagesFly");
         yara_set_cookie('yaraWelcomeMessage', 1, 5);
+        setTimeout(() => {
+            yaraMessagesBlock.classList.remove("yaraMessagesFly");
+        }, "6100");
     }
-   
 }
 
 yara_messages_holder();
@@ -67,3 +77,64 @@ function retunr_message(header, content) {
     let myMessage = `<h4>${header}</h4><p>${content}</p>`
     return myMessage;
 }
+
+function yara_product_constructor(yaraData) {
+    console.log(yaraData);
+
+    //yaraType
+
+    let productHTML =
+        `    
+    <h3>${yaraData.title}</h3>
+    <h4>product type: ${yaraData.yaraType}</h4>
+        <figure>
+            <img src="${yaraData.thumbnail}" >
+        </figure>
+        <p>
+        ${yaraData.description}
+        </br>
+        <strong>price: ${yaraData.price} лв.</strong>
+        </p>     
+    `
+    return productHTML;
+}
+
+
+function yara_build_products_list() {
+    if (yaraMainHolder) {
+        const productsList = document.createElement('div');
+        productsList.id = 'productsList';
+        productsList.className = 'productsList';
+        yaraMainHolder.append(productsList);
+
+        advanced_script_vars['itemsData'].forEach(async (product, index) => {
+            //console.log(index);
+            //console.log(product);
+
+            // let productsListContainer = document.getElementById(productsList);
+
+            if (index % 3 == 0) {
+                console.log("main product");
+            }
+
+            let itemBlock = document.createElement('div');
+            itemBlock.id = `yaraItem-${product.id}`;
+            itemBlock.className = 'yaraItemBlock';
+            
+            if (index % 3 == 0) {
+                console.log("main product");
+                itemBlock.classList.add("yaraMainProduct");
+                product.yaraType = "Main Product";
+            } else {
+                itemBlock.classList.add("yaraOptionProduct");
+                product.yaraType = "Child Product";
+            }
+            itemBlock.innerHTML = yara_product_constructor(product);
+            productsList.append(itemBlock);
+
+        });
+
+
+    }
+}
+yara_build_products_list();

@@ -2,10 +2,10 @@
   0% {
     right: -342px;
   }
-  15% {
+  10% {
     right: 20px;
   }
-  95% {
+  90% {
     right: 20px;
   }
   100% {
@@ -15,7 +15,7 @@
 .yaraMessagesFly {
   right: -342px;
   animation-name: yara_msg_fly_animation;
-  animation-duration: 6s;
+  animation-duration: 4s;
 }
 
 .yaraMessages {
@@ -39,4 +39,39 @@
   border: solid 1px gray;
   margin: 20px;
   position: relative;
+}
+.yaraMainHolder .productsList {
+  padding: 10px;
+  background-color: rgb(227, 235, 246);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.yaraMainHolder .productsList .yaraItemBlock {
+  border-bottom: solid 1px gray;
+  padding: 10px;
+}
+.yaraMainHolder .productsList .yaraItemBlock h3, .yaraMainHolder .productsList .yaraItemBlock h4, .yaraMainHolder .productsList .yaraItemBlock p {
+  margin: 0;
+  padding: 0;
+}
+.yaraMainHolder .productsList .yaraItemBlock h4 {
+  margin-bottom: 10px;
+}
+.yaraMainHolder .productsList .yaraItemBlock figure {
+  display: block;
+  width: 150px;
+  min-height: 150px;
+  overflow: hidden;
+  border: solid 10px rgb(255, 255, 255);
+  float: left;
+  margin: 0 20px 0 0;
+}
+.yaraMainHolder .productsList .yaraItemBlock figure img {
+  display: block;
+  width: auto;
+  height: 150px;
+  margin: auto;
+}
+.yaraMainHolder .productsList .yaraMainProduct {
+  background-color: rgb(200, 217, 238);
 }/*# sourceMappingURL=main.css.map */

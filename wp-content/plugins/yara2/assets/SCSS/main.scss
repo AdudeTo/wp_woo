@@ -40,4 +40,43 @@
     border: solid 1px gray;
     margin: 20px;
     position: relative;
+    .productsList{
+        padding: 10px;
+        background-color: rgb(227, 235, 246);
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+
+        .yaraItemBlock{
+            border-bottom: solid 1px gray;
+            padding: 10px;
+           
+            
+            h3,h4,p{
+                margin: 0;
+                padding: 0;                
+            }
+
+            h4{
+                margin-bottom: 10px;
+            }
+            figure{                
+                display: block;
+                width: 150px;
+                min-height: 150px;
+                overflow: hidden;
+                border: solid 10px rgb(255, 255, 255);
+                float: left;                
+                margin: 0 20px 0 0;
+                img{
+                    display: block;
+                    width: auto;
+                    height: 150px;
+                    margin: auto;
+                }
+            }
+        }
+        .yaraMainProduct{
+            background-color: rgb(200, 217, 238);
+        }
+    }
 }

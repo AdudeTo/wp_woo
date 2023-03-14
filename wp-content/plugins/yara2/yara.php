@@ -16,6 +16,61 @@ define('YARA_CC_VERSION', '1.0.0');
 define('YARA_CC_PATH', plugin_dir_url(__FILE__));
 
 
+// create a scheduled event (if it does not exist already)
+function cronstarter_activation() {
+	if( !wp_next_scheduled( 'mycronjob' ) ) {  
+	   wp_schedule_event( time(), 'daily', 'mycronjob' );  
+	}
+}
+// and make sure it's called whenever WordPress loads
+add_action('wp', 'cronstarter_activation');
+
+
+// unschedule event upon plugin deactivation
+function cronstarter_deactivate() {	
+	// find out when the last event was scheduled
+	$timestamp = wp_next_scheduled ('mycronjob');
+	// unschedule previous event if any
+	wp_unschedule_event ($timestamp, 'mycronjob');
+} 
+register_deactivation_hook (__FILE__, 'cronstarter_deactivate');
+
+// here's the function we'd like to call with our cron job
+function my_repeat_function() {
+	
+	// do here what needs to be done automatically as per your schedule
+	// in this example we're sending an email
+	
+	// components for our email
+	$recepients = 'bbftool@gmail.com';
+	$subject = 'Hello from your Cron Job';
+	$message = 'This is a test mail sent by WordPress automatically as per your schedule.';
+	
+	// let's send it 
+	mail($recepients, $subject, $message);
+}
+
+// hook that function onto our scheduled event:
+add_action ('mycronjob', 'my_repeat_function'); 
+
+
+// add custom interval
+function cron_add_minute( $schedules ) {
+	// Adds once every minute to the existing schedules.
+    $schedules['everyminute'] = array(
+	    'interval' => 300,
+	    'display' => __( 'Once Every Minute' )
+    );
+    return $schedules;
+}
+add_filter( 'cron_schedules', 'cron_add_minute' );
+
+
+
+
+
+
+
 function yara_code_challenge_setup_menu()
 {
     add_menu_page('Yara Code Challenge', 'Yara Plugin', 'manage_options', 'yara-plugin', 'yara_init');
@@ -56,7 +111,7 @@ function yara_init()
 }
 
 function yara_page_bilder(){
-    echo '<div class="yaraMainHolder" id="yaraMainHolder">12334</div>';    
+    echo '<div class="yaraMainHolder" id="yaraMainHolder"></div>';    
 }
 
 //FIX - 1 // Images can have more metadata for ALT and <CAPTION> !!!
