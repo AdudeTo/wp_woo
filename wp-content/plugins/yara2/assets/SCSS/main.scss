@@ -1,0 +1,43 @@
+@keyframes yara_msg_fly_animation {
+    0% {
+        right: -342px;
+    }
+    10% {
+        right: 20px;
+    }
+    90% {
+        right: 20px;
+    }
+    100% {
+        right: -342px;
+    }
+}
+
+.yaraMessagesFly {
+    right: -342px;
+    animation-name: yara_msg_fly_animation;
+    animation-duration: 4s;
+}
+
+.yaraMessages {
+    position: absolute;
+    z-index: 10000;
+    background-color: white;
+    border: solid 1px gray;
+    padding: 20px;
+    width: 300px;
+    height: auto;
+    h4,
+    p {
+        padding: 0;
+        margin: 0;
+    }
+    top: 50px;
+    right: -342px;
+}
+
+.yaraMainHolder {
+    border: solid 1px gray;
+    margin: 20px;
+    position: relative;
+}
