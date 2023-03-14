@@ -16,81 +16,15 @@ define('YARA_CC_VERSION', '1.0.0');
 define('YARA_CC_PATH', plugin_dir_url(__FILE__));
 
 
-// CRON JOB 123
 
-// add custom interval
-function cron_add_minute( $schedules ) {
-	// Adds once every minute to the existing schedules.
-    $schedules['everyfiveminutes'] = array(
-	    'interval' => 300,
-	    'display' => __( 'Once Every 5 Minute' )
-    );
-    return $schedules;
-}
-add_filter( 'cron_schedules', 'cron_add_minute' );
-
-// create a scheduled event (if it does not exist already)
-function cronstarter_activation() {
-	if( !wp_next_scheduled( 'yara_mycronjob' ) ) {  
-	   wp_schedule_event( time(), 'everyfiveminutes', 'yara_mycronjob' );  
-	}
-}
-// and make sure it's called whenever WordPress loads
-add_action('wp', 'cronstarter_activation');
-
-
-// unschedule event upon plugin deactivation
-function cronstarter_deactivate() {	
-	// find out when the last event was scheduled
-	$timestamp = wp_next_scheduled ('yara_mycronjob');
-	// unschedule previous event if any
-	wp_unschedule_event ($timestamp, 'yara_mycronjob');
-} 
-register_deactivation_hook (__FILE__, 'cronstarter_deactivate');
-
-// here's the function we'd like to call with our cron job
-function my_repeat_function() {
+function yara_create_db()
+{
 
     global $wpdb;
-	
-	// do here what needs to be done automatically as per your schedule
-	// in this example we're sending an email
-	
-	// components for our email
-    $current_datetime = current_datetime()->format('Y-m-d H:i:s');
-    $sql = $wpdb->INSERT('wp_yara_products', array('clicks' => 8, 'time' => $current_datetime ));  //     (`object_id`,`term_taxonomy_id`) values (5,5))";
-    $wpdb->query($sql);
-    
+    $charset_collate = $wpdb->get_charset_collate();
+    $table_name = $wpdb->prefix . 'yara_products';
 
-
-	//$recepients = 'bbftool@gmail.com';
-	//$subject = 'Hello from your Cron Job';
-	//$message = 'This is a test mail sent by WordPress automatically as per your schedule.';
-	
-	// let's send it 
-	//mail($recepients, $subject, $message);
-}
-
-// hook that function onto our scheduled event:
-add_action ('yara_mycronjob', 'my_repeat_function'); 
-
-
-
-
-// CRON JOB 123
-
-// title category description price image_link image_att_id yara_type wp_id souce_id related_id
-
-
-
-register_activation_hook( __FILE__, 'yara_create_db' );
-function yara_create_db() {
-
-	global $wpdb;
-	$charset_collate = $wpdb->get_charset_collate();
-	$table_name = $wpdb->prefix . 'yara_products';
-
-	$sql = "CREATE TABLE $table_name (
+    $sql = "CREATE TABLE $table_name (
 		id mediumint(9) NOT NULL AUTO_INCREMENT,
 		time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 		views smallint(5) NOT NULL,
@@ -108,13 +42,117 @@ function yara_create_db() {
 		UNIQUE KEY id (id)
 	) $charset_collate;";
 
-	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-	dbDelta( $sql );
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    dbDelta($sql);
 
+    //just ping to init plugin start
     $sql = $wpdb->INSERT('wp_yara_products', array('clicks' => 1));  //     (`object_id`,`term_taxonomy_id`) values (5,5))";
     $wpdb->query($sql);
 }
+register_activation_hook(__FILE__, 'yara_create_db');
 
+
+// CRON JOB 123
+
+// add custom interval
+function cron_add_minute($schedules)
+{
+    // Adds once every 5 minutes to the existing schedules.
+    $schedules['everyfiveminutes'] = array(
+        'interval' => 60,
+        'display' => __('Once Every 5 Minute')
+    );
+    return $schedules;
+}
+add_filter('cron_schedules', 'cron_add_minute');
+
+// create a scheduled event (if it does not exist already)
+function cronstarter_activation()
+{
+    if (!wp_next_scheduled('yara_mycronjob')) {
+        wp_schedule_event(time(), 'everyfiveminutes', 'yara_mycronjob');
+    }
+}
+// and make sure it's called whenever WordPress loads
+add_action('wp', 'cronstarter_activation');
+
+
+// unschedule event upon plugin deactivation
+function cronstarter_deactivate()
+{
+    // find out when the last event was scheduled
+    $timestamp = wp_next_scheduled('yara_mycronjob');
+    // unschedule previous event if any
+    wp_unschedule_event($timestamp, 'yara_mycronjob');
+}
+register_deactivation_hook(__FILE__, 'cronstarter_deactivate');
+
+
+/*
+'post_title'    => $product->title,
+'post_content'  =>  $product->description,
+'post_status'   => 'publish',
+'post_type'   => $yara_post_type,
+'post_parent'   => $yara_post_parent,
+'post_category' => array($productCategory),
+'post_price' => $product->price,
+'post_author'   => 1
+*/
+
+
+// here's the function we'd like to call with our cron job  !!allow_url_fopen = On in php.ini or htaccess
+function my_repeat_function()
+{
+    global $wpdb;
+    // ping to DB to be sure that cron works
+    $current_datetime = current_datetime()->format('Y-m-d H:i:s');
+    $sql = $wpdb->INSERT('wp_yara_products', array('clicks' => 8, 'time' => $current_datetime));
+    $wpdb->query($sql);
+
+    $getSourceData = yara_scrap_data();
+    
+
+    // DB Fields title category description price image_link image_att_id yara_type wp_id souce_id related_id
+    $yaraNewProducts = 0;
+    foreach ($getSourceData as $index => $product) {
+        $productImage = 'empty';
+        if ($product->images[0]) {
+            $productImage = htmlentities($product->images[0], ENT_COMPAT,'UTF-8', true);           
+        }
+        $ifPostExist = $wpdb->get_results("SELECT * FROM wp_yara_products WHERE title = '$product->title'");
+        if(!$ifPostExist){
+            $sql = $wpdb->INSERT('wp_yara_products', array(
+                'clicks' => 170,
+                'time' => $current_datetime,
+                'title' => $product->title,
+                'category' => $product->category,
+                'description' => $product->description,
+                'price' => $product->price,
+                'image_link' => $productImage
+            ));
+            $wpdb->query($sql); 
+            $yaraNewProducts++;
+        } else{
+            //check for updates ETC
+        }   
+    }
+    $sql = $wpdb->INSERT('wp_yara_products', array('views' => $yaraNewProducts, 'clicks' => 9, 'time' => $current_datetime));
+    $wpdb->query($sql);
+}
+
+// hook that function onto our scheduled event:
+add_action('yara_mycronjob', 'my_repeat_function');
+
+
+
+
+// CRON JOB 123
+
+// DB Fields title category description price image_link image_att_id yara_type wp_id souce_id related_id
+// if runs everything at once plus images generator you will slow down server (also can crash it)
+// so we will prepare an database will put all data here then slowly will process it
+// on next cron run we just will check for new items that are not procesed and create it
+// also will check for updates on old ones (faster and secure)
 
 
 
@@ -127,7 +165,8 @@ function yara_code_challenge_setup_menu()
 }
 add_action('admin_menu', 'yara_code_challenge_setup_menu');
 
-function yara_scrap_data(){
+function yara_scrap_data()
+{
     $apiUrl = 'https://dummyjson.com/products';   // Source URL  
     $jsonData = file_get_contents($apiUrl); // Read JSON file    
     $responseData = json_decode($jsonData); // Decode JSON data into PHP array   
@@ -138,8 +177,8 @@ function yara_scrap_data(){
 function yara_js_functions()
 {
     $yaraData['pluginDirUrl'] = YARA_CC_PATH;
-    $yaraData['itemsData'] =  yara_scrap_data();    
-    wp_enqueue_style( 'yara-my-style',  YARA_CC_PATH . 'assets/SCSS/main.css', false, '1.0', 'all' ); 
+    $yaraData['itemsData'] =  yara_scrap_data();
+    wp_enqueue_style('yara-my-style',  YARA_CC_PATH . 'assets/SCSS/main.css', false, '1.0', 'all');
     wp_enqueue_script('advanced-script', YARA_CC_PATH . 'assets/apps/app.js', NULL, NULL, true);
     wp_localize_script(
         'advanced-script',
@@ -160,8 +199,9 @@ function yara_init()
     }
 }
 
-function yara_page_bilder(){
-    echo '<div class="yaraMainHolder" id="yaraMainHolder"></div>';    
+function yara_page_bilder()
+{
+    echo '<div class="yaraMainHolder" id="yaraMainHolder"></div>';
 }
 
 //FIX - 1 // Images can have more metadata for ALT and <CAPTION> !!!
