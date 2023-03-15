@@ -143,7 +143,7 @@ function yara_build_products_list() {
 
 
 async function loadYaraCronProducts() {
-    const response = await fetch(`https://${yaraPluginDirUrl}assets/php/requests.php?p=stats`);
+    const response = await fetch(`${yaraPluginDirUrl}assets/php/requests.php?p=stats`);
     const products = await response.json();
     //console.log(products);  
     let result = Object.keys(products).map((key) => products[key]);
