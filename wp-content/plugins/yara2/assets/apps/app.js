@@ -12,11 +12,7 @@ let yaraMessagesBlock, yaraIsMessageActive;
 
 const messagesData = [];
 messagesData['welcome'] = { header: "Yara Plugin Is Active!", content: "Checking Cron Job Status" };
-messagesData['postcreate'] = {postinprogress: "Post in Progress", postdone: "Post was created", imageinprogress: "Image in progress", imagedone: "Image was created"};
-
-
-
-
+messagesData['postcreate'] = { postinprogress: "Post in Progress", postdone: "Post was created", imageinprogress: "Image in progress", imagedone: "Image was created" };
 
 
 
@@ -122,7 +118,7 @@ function yara_build_products_list() {
             let itemBlock = document.createElement('div');
             itemBlock.id = `yaraItem-${product.id}`;
             itemBlock.className = 'yaraItemBlock';
-            
+
             if (index % 3 == 0) {
                 console.log("main product");
                 itemBlock.classList.add("yaraMainProduct");
@@ -137,50 +133,53 @@ function yara_build_products_list() {
         });
     }
     loadYaraCronProducts();
-    yaraProductsStats = setInterval(loadYaraCronProducts, 30000);    
+    yaraProductsStats = setInterval(loadYaraCronProducts, 30000);
 }
 
 
 
 async function loadYaraCronProducts() {
-    const response = await fetch(`${yaraPluginDirUrl}assets/php/requests.php?p=stats`);
-    const products = await response.json();
+    let response = await fetch(`${yaraPluginDirUrl}assets/php/requests.php?p=stats`);
+    console.log('response');
+    console.log(response);
+
+    if(response == null){
+        return;
+    }
+    let products = await response.json();
+
+
+
     //console.log(products);  
     let result = Object.keys(products).map((key) => products[key]);
     result.forEach(async (item, n) => {
-        console.log(item);
+        //console.log(item);
         let currentItem = document.getElementById(`yaraItem-${item.souce_id}`);
         let currentItemImage = document.getElementById(`yaraItem-${item.souce_id}`).querySelector('img');
 
         //yaraObj.innerHTML = retunr_message(yaraData.header, yaraData.content);
         //messagesData['postcreate'] = {postinprogress: "Post in Progress", postdone: "Post was created", imageinprogress: "Image in progress", imagedone: "Image was created"};
-    
+
         currentItem.classList.remove('inProgress');
         currentItemImage.classList.remove('inProgress');
         let postStatus = "</br></br><strong><u>status:</u></strong></br>";
 
-        if(item.wp_id == 0){
+        if (item.wp_id == 0) {
             postStatus += messagesData['postcreate'].postinprogress + "</br>";
             currentItem.classList.add('inProgress');
-        }else {
-            postStatus +="<span class='green'><strong>" +  messagesData['postcreate'].postdone + "</strong></span></br>";           
+        } else {
+            postStatus += "<span class='green'><strong>" + messagesData['postcreate'].postdone + "</strong></span></br>";
         }
 
-        if(item.image_att_id == 0){
+
+        if (item.image_att_id == 0) {
             postStatus += messagesData['postcreate'].imageinprogress + "</br>";
             currentItemImage.classList.add('inProgress');
-        }else {
-            postStatus +="<span class='green'><strong>" +  messagesData['postcreate'].imagedone + "</strong></span></br>";
-        } 
-
-        currentItem.querySelector('i').innerHTML =postStatus;
-
+        } else {
+            postStatus += "<span class='green'><strong>" + messagesData['postcreate'].imagedone + "</strong></span></br>";
+        }
+        currentItem.querySelector('i').innerHTML = postStatus;
     });
-  }
-
-
-
-
-
+}
 
 yara_build_products_list();
