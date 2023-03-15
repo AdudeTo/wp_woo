@@ -41,8 +41,6 @@ function yara_create_db()
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($yaraProductTable);
     }
-    //just ping to init plugin start
-    $wpdb->INSERT($table_name, array('clicks' => 1));
 }
 register_activation_hook(__FILE__, 'yara_create_db');
 
@@ -92,7 +90,7 @@ function yara_scrap_data()
     $apiUrl = 'https://dummyjson.com/products';   // Source URL  
     $jsonData = file_get_contents($apiUrl); // Read JSON file    
     $responseData = json_decode($jsonData); // Decode JSON data into PHP array   
-    $productsData = $responseData->products; // All user data products in 'data' object       
+    $productsData = $responseData->products; // All data products in 'data' object       
     return $productsData;
 }
 
@@ -125,15 +123,12 @@ function yara_init()
 function yara_page_bilder()
 {
     echo '<div class="yaraMainHolder" id="yaraMainHolder"></div>';
-    // cron debug 
-    // yara_repeat_function();
 }
 
 //FIX - 1 // Images can have more metadata for ALT and <CAPTION> !!!
 $temp_file;
 // atro create crop thumbs and save images
 function bg_image_upload($url, $productTitle)
-
 {
     global $wpdb, $temp_file;
     require_once(ABSPATH . "/wp-load.php");
@@ -142,15 +137,9 @@ function bg_image_upload($url, $productTitle)
     require_once(ABSPATH . "/wp-admin/includes/media.php");
 
     $current_datetime = current_datetime()->format('Y-m-d H:i:s');
-    $table_name = $wpdb->prefix . 'yara_products';
-    $wpdb->INSERT($table_name, array('views' => 2020, 'clicks' => 2020, 'time' => $current_datetime));
-
+    $table_name = $wpdb->prefix . 'yara_products';   
     $timeout_seconds = 10;
     $temp_file = download_url($url, $timeout_seconds);
-
-    $wpdb->INSERT($table_name, array('views' => 4555, 'clicks' => 4555, 'description' => get_temp_dir(), 'time' => $current_datetime));
-    $wpdb->INSERT($table_name, array('views' => 1818, 'clicks' => 1818, 'time' => $current_datetime));
-
 
     if (!is_wp_error($temp_file)) {
         $wpdb->INSERT($table_name, array('views' => 3020, 'clicks' => 3020, 'time' => $current_datetime));
@@ -241,26 +230,14 @@ $yaraMainWooProduct;
 $yaraVariationWooProduct = 0;
 $yaraTotalProducts = 0;
 
-// here's the function we'd like to call with our cron job  !!allow_url_fopen = On in php.ini or htaccess
-// if runs everything at once plus images generator you will slow down server (also can crash it)
-// so we will prepare an database will put all data here then slowly will process it
-// on next cron run we just will check for new items that are not procesed and create it
-// also will check for updates on old ones (faster and secure)
-
 function yara_repeat_function()
 {
 
-    global $wpdb, $yaraMainWooProduct, $yaraVariationWooProduct;
-    // ping to DB to be sure that cron works
+    global $wpdb, $yaraMainWooProduct, $yaraVariationWooProduct;    
     $current_datetime = current_datetime()->format('Y-m-d H:i:s');
-    $table_name = $wpdb->prefix . 'yara_products';
-    $wpdb->INSERT($table_name, array('clicks' => 8, 'time' => $current_datetime));
-
-
+    $table_name = $wpdb->prefix . 'yara_products'; 
     $getSourceData = yara_scrap_data();
-
-
-    // DB Fields title category description price image_link image_att_id yara_type wp_id souce_id related_id
+   
     $yaraNewProducts = 0;
     foreach ($getSourceData as $index => $product) {
         $productImage = 'empty';
@@ -284,28 +261,21 @@ function yara_repeat_function()
             //check for updates ETC
         }
     }
-
-    $wpdb->INSERT($table_name, array('views' => $yaraNewProducts, 'clicks' => 9, 'time' => $current_datetime));
+  
     $getYaraPosts = $wpdb->get_results("SELECT * FROM  $table_name  WHERE clicks = 200 AND wp_id = 0 ORDER BY souce_id ASC LIMIT 30");
-    $wpdb->INSERT($table_name, array('views' => 666, 'clicks' => 666, 'time' => $current_datetime));
+   
+    if ($getYaraPosts) {       
+        $atts = $names = $images = $prices = $souceID = [];      
+        foreach ($getYaraPosts as $details) {  
 
-    if ($getYaraPosts) {
-        $wpdb->INSERT($table_name, array('views' => 777, 'clicks' => 777, 'time' => $current_datetime));
-        $atts = $names = $images = $prices = $souceID = [];
-        $wpdb->INSERT($table_name, array('views' => 888, 'clicks' => 888, 'time' => $current_datetime));
-        foreach ($getYaraPosts as $details) {
-            $wpdb->INSERT($table_name, array('views' => 999, 'clicks' => 999, 'time' => $current_datetime));
-
-
-            //BUG - 1 // $productCategory = category_exists($details->category);
+            //fix can be an object
             $names[] = $details->title;
             $images[] = $details->image_link;
             $prices[] = $details->price;
-            $souceID[] = $details->souce_id;
-
-            $wpdb->INSERT($table_name, array('views' => 10, 'clicks' => 10, 'time' => $current_datetime));
+            $souceID[] = $details->souce_id;           
 
             /*
+             //BUG - 1 // $productCategory = category_exists($details->category);
             if (!$productCategory) {
                 //BUG - 1 //The category needs more final touch !!!! Not Complete yet !!!
                 wp_insert_term($details->category, 'product_cat', array(
@@ -314,9 +284,7 @@ function yara_repeat_function()
                 $productCategory = category_exists($details->category);
                 add_term_meta($productCategory, 'display_type', 'products');
             }*/
-
-            $wpdb->INSERT($table_name, array('views' => $yaraVariationWooProduct, 'clicks' => 66, 'time' => $current_datetime));
-
+          
             if ($yaraVariationWooProduct == 0) {
                 $yara_post_type = 'product';
                 $yara_post_parent = 0;
@@ -332,15 +300,9 @@ function yara_repeat_function()
                 $yaraMainWooProduct = yara_create_product($my_yara_product_post);
                 $newProduct = $yaraMainWooProduct->get_id();
                 $wpdb->update($table_name, array('image_att_id' => 1, 'wp_id' => $newProduct), array('souce_id' => $details->souce_id));
-                $wpdb->INSERT($table_name, array('image_link' => $details->image_link, 'views' => $details->souce_id, 'wp_id' => $newProduct, 'clicks' => 42, 'time' => $current_datetime));
 
                 if ($details->image_link) {
-                    $wpdb->INSERT($table_name, array('views' => 4545, 'clicks' => 4545, 'time' => $current_datetime));
-
-                    $myProductImageId = bg_image_upload($details->image_link, $details->title);
-
-                    $wpdb->INSERT($table_name, array('views' => 6565, 'clicks' => 6565, 'time' => $current_datetime));
-
+                    $myProductImageId = bg_image_upload($details->image_link, $details->title); 
                     if (!add_post_meta($newProduct, '_thumbnail_id', $myProductImageId, false)) {
                         update_post_meta($newProduct, '_thumbnail_id', $myProductImageId);
                     }
@@ -349,24 +311,16 @@ function yara_repeat_function()
 
                 $yaraVariationWooProduct++;
             // BUG 3 if here 1 or 2 products only
-            } else if ($yaraVariationWooProduct == 1) {
-                $wpdb->INSERT($table_name, array('views' => 155, 'clicks' => 155, 'time' => $current_datetime));
-
+            } else if ($yaraVariationWooProduct == 1) {  
                 $relatedParent = $yaraMainWooProduct->get_id();
-                $wpdb->update($table_name, array('image_att_id' => 1, 'wp_id' => 1, 'related_id' => $relatedParent), array('souce_id' => $details->souce_id));
-                $wpdb->INSERT($table_name, array('views' => $details->souce_id, 'related_id' => $relatedParent, 'clicks' => 43, 'time' => $current_datetime));
-                $yaraVariationWooProduct++;
-
-                $wpdb->INSERT($table_name, array('views' => 166, 'clicks' => 166, 'time' => $current_datetime));
+                $wpdb->update($table_name, array('image_att_id' => 1, 'wp_id' => 1, 'related_id' => $relatedParent), array('souce_id' => $details->souce_id));               
+                $yaraVariationWooProduct++;               
             // BUG 3 if here 1 or 2 products only
             } else if ($yaraVariationWooProduct == 2) {
                 $relatedParent = $yaraMainWooProduct->get_id();
-                $wpdb->update($table_name, array('image_att_id' => 1, 'wp_id' => 1, 'related_id' => $relatedParent), array('souce_id' => $details->souce_id));
-                $wpdb->INSERT($table_name, array('views' => $details->souce_id, 'related_id' => $relatedParent, 'clicks' => 44, 'time' => $current_datetime));
+                $wpdb->update($table_name, array('image_att_id' => 1, 'wp_id' => 1, 'related_id' => $relatedParent), array('souce_id' => $details->souce_id));               
                 $yaraVariationWooProduct == 0;
-
-                $wpdb->INSERT($table_name, array('views' => 177, 'clicks' => 177, 'time' => $current_datetime));
-
+                
                 if ($yaraMainWooProduct) {
                     // BUG 2 function need lowercase string without whitespaces .. name can be updated after options was created by ID
                     $anOption = strtolower(str_replace(array('\'', '"', ',', ';', '<', '>', '.', ' '), '_',  $names[0]));
@@ -381,9 +335,7 @@ function yara_repeat_function()
                         //Create variations
                         $yaraNewVariation = yara_create_variations($yaraMainWooProduct->get_id(), [$anOption => $name], $options_data);
                         $newProduct = $yaraNewVariation->get_id();
-
-                        $wpdb->update($table_name, array('image_att_id' => 1, 'wp_id' => $newProduct), array('souce_id' => $souceID[$index]));
-                        $wpdb->INSERT($table_name, array('views' => $details->souce_id, 'related_id' => 16, 'clicks' => 44, 'time' => $current_datetime));
+                        $wpdb->update($table_name, array('image_att_id' => 1, 'wp_id' => $newProduct), array('souce_id' => $souceID[$index]));                       
 
                         if ($images[$index]) {
                             $myProductImageId = bg_image_upload($images[$index], $product->title);
