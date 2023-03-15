@@ -8,33 +8,18 @@
  * Author: Vicho Vichev
  * Author URI: https://vichev.art
  * Requires PHP: 7.4
- *
- * @package YaraPlugin
  */
-
-//ini_set('display_errors','On');
-//ini_set('error_reporting', E_ALL );
-//define('WP_DEBUG', true);
-//define('WP_DEBUG_DISPLAY', true);
-
-
-
 
 defined('ABSPATH') || die;
 define('YARA_CC_VERSION', '1.0.0');
 define('YARA_CC_PATH', plugin_dir_url(__FILE__));
 
-
-
 function yara_create_db()
 {
-
     global $wpdb;
     $charset_collate = $wpdb->get_charset_collate();
     $table_name = $wpdb->prefix . 'yara_products';
-
     $isYaraProductTable = $wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table_name));
-
     if (!$wpdb->get_var($isYaraProductTable) == $table_name) {
         $yaraProductTable = "CREATE TABLE $table_name (
             id mediumint(9) NOT NULL AUTO_INCREMENT,
@@ -53,26 +38,22 @@ function yara_create_db()
             related_id mediumint(9) NOT NULL,
             UNIQUE KEY id (id)
         ) $charset_collate;";
-
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($yaraProductTable);
     }
-
     //just ping to init plugin start
-    $wpdb->INSERT($table_name, array('clicks' => 1));  //     (`object_id`,`term_taxonomy_id`) values (5,5))";
-
+    $wpdb->INSERT($table_name, array('clicks' => 1));
 }
 register_activation_hook(__FILE__, 'yara_create_db');
 
 
-// CRON JOB 123
 
-// add custom interval
+// add custom interval 5min
 function cron_add_minute($schedules)
 {
     // Adds once every 5 minutes 'interval' => 300 cant be less than 1min 60 to the existing schedules.
     $schedules['everyfiveminutes'] = array(
-        'interval' => 60,
+        'interval' => 300,
         'display' => __('Once Every 5 Minute')
     );
     return $schedules;
@@ -99,20 +80,6 @@ function cronstarter_deactivate()
     wp_unschedule_event($timestamp, 'yara_mycronjob');
 }
 register_deactivation_hook(__FILE__, 'cronstarter_deactivate');
-
-
-// CRON JOB 123
-
-// DB Fields title category description price image_link image_att_id yara_type wp_id souce_id related_id
-// if runs everything at once plus images generator you will slow down server (also can crash it)
-// so we will prepare an database will put all data here then slowly will process it
-// on next cron run we just will check for new items that are not procesed and create it
-// also will check for updates on old ones (faster and secure)
-
-
-
-
-
 
 function yara_code_challenge_setup_menu()
 {
@@ -142,6 +109,7 @@ function yara_js_functions()
     );
 }
 
+//admin styling and scripts
 add_action('admin_enqueue_scripts', 'yara_js_functions');
 
 function yara_init()
@@ -157,28 +125,25 @@ function yara_init()
 function yara_page_bilder()
 {
     echo '<div class="yaraMainHolder" id="yaraMainHolder"></div>';
-    //cron debug
+    // cron debug 
     // yara_repeat_function();
 }
 
 //FIX - 1 // Images can have more metadata for ALT and <CAPTION> !!!
 $temp_file;
+// atro create crop thumbs and save images
 function bg_image_upload($url, $productTitle)
 
 {
-        global $wpdb, $temp_file;
-        require_once( ABSPATH . "/wp-load.php");
-        require_once( ABSPATH . "/wp-admin/includes/image.php");
-        require_once( ABSPATH . "/wp-admin/includes/file.php");
-        require_once( ABSPATH . "/wp-admin/includes/media.php");
-    
-        $current_datetime = current_datetime()->format('Y-m-d H:i:s');
-        $table_name = $wpdb->prefix . 'yara_products';
-        $wpdb->INSERT($table_name, array('views' => 2020, 'clicks' => 2020, 'time' => $current_datetime));
+    global $wpdb, $temp_file;
+    require_once(ABSPATH . "/wp-load.php");
+    require_once(ABSPATH . "/wp-admin/includes/image.php");
+    require_once(ABSPATH . "/wp-admin/includes/file.php");
+    require_once(ABSPATH . "/wp-admin/includes/media.php");
 
-
-
-
+    $current_datetime = current_datetime()->format('Y-m-d H:i:s');
+    $table_name = $wpdb->prefix . 'yara_products';
+    $wpdb->INSERT($table_name, array('views' => 2020, 'clicks' => 2020, 'time' => $current_datetime));
 
     $timeout_seconds = 10;
     $temp_file = download_url($url, $timeout_seconds);
@@ -222,7 +187,6 @@ function bg_image_upload($url, $productTitle)
                 'post_status' => 'inherit',
                 'post_content' => '',
             );
-
             $img_id = wp_insert_attachment($attachment, $filename);
             $attach_data = wp_generate_attachment_metadata($img_id, $filename);
             wp_update_attachment_metadata($img_id,  $attach_data);
@@ -230,9 +194,6 @@ function bg_image_upload($url, $productTitle)
         }
     }
 }
-
-
-
 
 
 function yara_create_product($data)
@@ -281,6 +242,11 @@ $yaraVariationWooProduct = 0;
 $yaraTotalProducts = 0;
 
 // here's the function we'd like to call with our cron job  !!allow_url_fopen = On in php.ini or htaccess
+// if runs everything at once plus images generator you will slow down server (also can crash it)
+// so we will prepare an database will put all data here then slowly will process it
+// on next cron run we just will check for new items that are not procesed and create it
+// also will check for updates on old ones (faster and secure)
+
 function yara_repeat_function()
 {
 
@@ -321,36 +287,17 @@ function yara_repeat_function()
 
     $wpdb->INSERT($table_name, array('views' => $yaraNewProducts, 'clicks' => 9, 'time' => $current_datetime));
     $getYaraPosts = $wpdb->get_results("SELECT * FROM  $table_name  WHERE clicks = 200 AND wp_id = 0 ORDER BY souce_id ASC LIMIT 30");
-
-    // $query = $wpdb->query("SELECT * FROM  $table_name  WHERE clicks = 200 AND wp_id = 0 ORDER BY souce_id ASC LIMIT 9");
-    // $getYaraPosts = $wpdb->get_results($query);
-
-    //  $query = $wpdb->query( 
-    //   $wpdb->prepare( 
-    //      "SELECT * FROM  $table_name  WHERE clicks = 200 AND wp_id = 0 ORDER BY souce_id ASC LIMIT 9"
-    //  )
-    // );
-    //
-    //$getYaraPosts = $wpdb->get_results($query);
-
-
-    // $getYaraPosts = $wpdb->query("SELECT * FROM  $table_name WHERE clicks = 200 AND wp_id = 0 ORDER BY souce_id ASC LIMIT 9"); 
-
-
-    // echo("REST - - - - - 00 ");
     $wpdb->INSERT($table_name, array('views' => 666, 'clicks' => 666, 'time' => $current_datetime));
+
     if ($getYaraPosts) {
         $wpdb->INSERT($table_name, array('views' => 777, 'clicks' => 777, 'time' => $current_datetime));
-        // $yara_post_parent = $yara_post_type = $yara_post_parent = $yaraMainProduct = NULL;
         $atts = $names = $images = $prices = $souceID = [];
         $wpdb->INSERT($table_name, array('views' => 888, 'clicks' => 888, 'time' => $current_datetime));
-        // echo("REST - - - - - 01 ");
         foreach ($getYaraPosts as $details) {
             $wpdb->INSERT($table_name, array('views' => 999, 'clicks' => 999, 'time' => $current_datetime));
-            // echo("REST - - - - - ");
-            // print_r($details);
 
-            // $productCategory = category_exists($details->category);
+
+            //BUG - 1 // $productCategory = category_exists($details->category);
             $names[] = $details->title;
             $images[] = $details->image_link;
             $prices[] = $details->price;
@@ -370,7 +317,6 @@ function yara_repeat_function()
 
             $wpdb->INSERT($table_name, array('views' => $yaraVariationWooProduct, 'clicks' => 66, 'time' => $current_datetime));
 
-
             if ($yaraVariationWooProduct == 0) {
                 $yara_post_type = 'product';
                 $yara_post_parent = 0;
@@ -388,7 +334,6 @@ function yara_repeat_function()
                 $wpdb->update($table_name, array('image_att_id' => 1, 'wp_id' => $newProduct), array('souce_id' => $details->souce_id));
                 $wpdb->INSERT($table_name, array('image_link' => $details->image_link, 'views' => $details->souce_id, 'wp_id' => $newProduct, 'clicks' => 42, 'time' => $current_datetime));
 
-                
                 if ($details->image_link) {
                     $wpdb->INSERT($table_name, array('views' => 4545, 'clicks' => 4545, 'time' => $current_datetime));
 
@@ -401,9 +346,9 @@ function yara_repeat_function()
                     }
                     $wpdb->update($table_name, array('image_att_id' => $myProductImageId), array('souce_id' => $details->souce_id));
                 }
-                
 
                 $yaraVariationWooProduct++;
+            // BUG 3 if here 1 or 2 products only
             } else if ($yaraVariationWooProduct == 1) {
                 $wpdb->INSERT($table_name, array('views' => 155, 'clicks' => 155, 'time' => $current_datetime));
 
@@ -413,7 +358,7 @@ function yara_repeat_function()
                 $yaraVariationWooProduct++;
 
                 $wpdb->INSERT($table_name, array('views' => 166, 'clicks' => 166, 'time' => $current_datetime));
-
+            // BUG 3 if here 1 or 2 products only
             } else if ($yaraVariationWooProduct == 2) {
                 $relatedParent = $yaraMainWooProduct->get_id();
                 $wpdb->update($table_name, array('image_att_id' => 1, 'wp_id' => 1, 'related_id' => $relatedParent), array('souce_id' => $details->souce_id));
@@ -422,12 +367,10 @@ function yara_repeat_function()
 
                 $wpdb->INSERT($table_name, array('views' => 177, 'clicks' => 177, 'time' => $current_datetime));
 
-
                 if ($yaraMainWooProduct) {
                     // BUG 2 function need lowercase string without whitespaces .. name can be updated after options was created by ID
                     $anOption = strtolower(str_replace(array('\'', '"', ',', ';', '<', '>', '.', ' '), '_',  $names[0]));
                     $atts[] = yara_create_attributes($anOption, $names);
-
                     $yaraMainWooProduct->set_attributes($atts);
                     $yaraMainWooProduct->save();
 
@@ -442,8 +385,6 @@ function yara_repeat_function()
                         $wpdb->update($table_name, array('image_att_id' => 1, 'wp_id' => $newProduct), array('souce_id' => $souceID[$index]));
                         $wpdb->INSERT($table_name, array('views' => $details->souce_id, 'related_id' => 16, 'clicks' => 44, 'time' => $current_datetime));
 
-
-                        
                         if ($images[$index]) {
                             $myProductImageId = bg_image_upload($images[$index], $product->title);
                             if (!add_post_meta($yaraNewVariation->get_id(), '_thumbnail_id', $myProductImageId, true)) {
@@ -451,7 +392,6 @@ function yara_repeat_function()
                             }
                             $wpdb->update($table_name, array('image_att_id' => $myProductImageId), array('souce_id' => $souceID[$index]));
                         }
-
                     }
                     $yaraVariationWooProduct = 0;
                     $atts = $names = $images = $prices = $souceID = [];
@@ -460,6 +400,5 @@ function yara_repeat_function()
         }
     }
 }
-
 // hook that function onto our scheduled event:
 add_action('yara_mycronjob', 'yara_repeat_function');
