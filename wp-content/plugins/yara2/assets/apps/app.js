@@ -2,7 +2,7 @@ const yaraMainHolder = document.getElementById('yaraMainHolder');
 const yaraPluginDirUrl = advanced_script_vars['pluginDirUrl'];
 const yaraWPcontentBlock = document.getElementById('wpwrap');
 console.log("init yara page!");
-console.log(yaraMainHolder);
+console.log(yaraPluginDirUrl);
 
 
 let yaraMessagesHeader = '';

@@ -101,7 +101,7 @@ $yaraTotalProducts = 0;
 function yara_repeat_function()
 {
 
-    global $wpdb, $yaraMainWooProduct,$yaraVariationWooProduct;
+    global $wpdb, $yaraMainWooProduct, $yaraVariationWooProduct;
     // ping to DB to be sure that cron works
     $current_datetime = current_datetime()->format('Y-m-d H:i:s');
     $table_name = $wpdb->prefix . 'yara_products';
@@ -113,8 +113,6 @@ function yara_repeat_function()
 
     // DB Fields title category description price image_link image_att_id yara_type wp_id souce_id related_id
     $yaraNewProducts = 0;
-
-
     foreach ($getSourceData as $index => $product) {
         $productImage = 'empty';
         if ($product->images[0]) {
@@ -143,12 +141,11 @@ function yara_repeat_function()
 
     $getYaraPosts = $wpdb->get_results("SELECT * FROM $table_name WHERE clicks = 200 AND wp_id = 0 ORDER BY souce_id ASC LIMIT 3");
 
-    if ($getYaraPosts) {
-        $productsInit = 0;
-        $yara_post_parent = $yara_post_type = $yara_post_parent = $yaraMainProduct = NULL;
+    if ($getYaraPosts) {        
+       // $yara_post_parent = $yara_post_type = $yara_post_parent = $yaraMainProduct = NULL;
         $atts = $names = $images = $prices = [];
         foreach ($getYaraPosts as $details) {
-            
+
             $productCategory = category_exists($details->category);
 
             $names[] = $details->title;
@@ -164,7 +161,7 @@ function yara_repeat_function()
                 add_term_meta($productCategory, 'display_type', 'products');
             }
 
-            if (!$yaraVariationWooProduct==0) {
+            if ($yaraVariationWooProduct == 0) {
                 $yara_post_type = 'product';
                 $yara_post_parent = 0;
                 $my_yara_product_post = array(
@@ -179,17 +176,18 @@ function yara_repeat_function()
                 );
                 $yaraMainWooProduct = yara_create_product($my_yara_product_post);
                 $newProduct = $yaraMainWooProduct->get_id();
-                $wpdb->INSERT($table_name, array('views' => $details->souce_id, 'wp_id' =>$newProduct, 'clicks' => 42, 'time' => $current_datetime));
-
-            }else if ($yaraVariationWooProduct == 1) {
+                $wpdb->INSERT($table_name, array('views' => $details->souce_id, 'wp_id' => $newProduct, 'clicks' => 42, 'time' => $current_datetime));
+                $yaraVariationWooProduct++;
+            } else if ($yaraVariationWooProduct == 1) {
                 $relatedParent = $yaraMainWooProduct->get_id();
-                $wpdb->INSERT($table_name, array('views' => $details->souce_id, 'related_id' =>$relatedParent, 'clicks' => 42, 'time' => $current_datetime));
-                
-            }else if ($yaraVariationWooProduct == 2) {
+                $wpdb->INSERT($table_name, array('views' => $details->souce_id, 'related_id' => $relatedParent, 'clicks' => 42, 'time' => $current_datetime));
+                $yaraVariationWooProduct++;
+            } else if ($yaraVariationWooProduct == 2) {
 
                 $relatedParent = $yaraMainWooProduct->get_id();
-                $wpdb->INSERT($table_name, array('views' => $details->souce_id, 'related_id' =>$relatedParent, 'clicks' => 42, 'time' => $current_datetime));
-                
+                $wpdb->INSERT($table_name, array('views' => $details->souce_id, 'related_id' => $relatedParent, 'clicks' => 42, 'time' => $current_datetime));
+                $yaraVariationWooProduct == 0;
+
                 /*
                 if ($yaraMainWooProduct) {
                     // BUG 2 function need lowercase string without whitespaces .. name can be updated after options was created by ID
@@ -215,17 +213,14 @@ function yara_repeat_function()
                     $yaraVariationWooProduct = 0;
                     $atts = $names = $images = $prices = [];
                 }*/
-
-
-
             }
+
+
+
+
+            // $wpdb->update($table_name, array('image_att_id' => 1, 'wp_id' => 1), array('souce_id' => $details->souce_id));
+
             
-
-
-
-           // $wpdb->update($table_name, array('image_att_id' => 1, 'wp_id' => 1), array('souce_id' => $details->souce_id));
-
-           $yaraVariationWooProduct++;
 
             // for debug 
             // echo "title:" . $details->title . "\n";    
