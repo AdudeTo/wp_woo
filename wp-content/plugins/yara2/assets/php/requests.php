@@ -16,27 +16,6 @@ if (current_user_can('administrator')) {
         echo json_encode($list, JSON_PRETTY_PRINT);
     }
 } else {
-    echo ". . .";
+    //return error.php data
+    //echo ". . ."; 
 }
-
-
-
-
-
-
-
-/*
-$page = $_GET['p'];
-$section = $_GET['s'];
-
-$list = [];
-
-if($section){
-include 'templates/' . $section . '.php';
-}else {
-  'templates/article.php';
-}
-
-*/
-//echo json_encode($list, JSON_PRETTY_PRINT);
-//print_r($list, JSON_PRETTY_PRINT);
