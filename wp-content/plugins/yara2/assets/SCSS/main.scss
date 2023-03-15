@@ -37,6 +37,12 @@
 }
 
 .yaraMainHolder {
+    .green{
+        color: green;
+    }
+    .inProgress{
+        opacity: 0.5;
+    }
     border: solid 1px gray;
     margin: 20px;
     position: relative;

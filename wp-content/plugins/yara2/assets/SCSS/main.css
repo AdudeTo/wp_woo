@@ -40,6 +40,12 @@
   margin: 20px;
   position: relative;
 }
+.yaraMainHolder .green {
+  color: green;
+}
+.yaraMainHolder .inProgress {
+  opacity: 0.5;
+}
 .yaraMainHolder .productsList {
   padding: 10px;
   background-color: rgb(227, 235, 246);

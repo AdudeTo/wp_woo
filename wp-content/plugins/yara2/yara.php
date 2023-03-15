@@ -57,9 +57,9 @@ register_activation_hook(__FILE__, 'yara_create_db');
 // add custom interval
 function cron_add_minute($schedules)
 {
-    // Adds once every 5 minutes to the existing schedules.
+    // Adds once every 5 minutes 'interval' => 300 cant be less than 1min 60 to the existing schedules.
     $schedules['everyfiveminutes'] = array(
-        'interval' => 60,
+        'interval' => 300,
         'display' => __('Once Every 5 Minute')
     );
     return $schedules;
@@ -88,21 +88,11 @@ function cronstarter_deactivate()
 register_deactivation_hook(__FILE__, 'cronstarter_deactivate');
 
 
-/*
-'post_title'    => $product->title,
-'post_content'  =>  $product->description,
-'post_status'   => 'publish',
-'post_type'   => $yara_post_type,
-'post_parent'   => $yara_post_parent,
-'post_category' => array($productCategory),
-'post_price' => $product->price,
-'post_author'   => 1
-*/
-
 
 // here's the function we'd like to call with our cron job  !!allow_url_fopen = On in php.ini or htaccess
 function my_repeat_function()
 {
+    
     global $wpdb;
     // ping to DB to be sure that cron works
     $current_datetime = current_datetime()->format('Y-m-d H:i:s');
@@ -122,13 +112,14 @@ function my_repeat_function()
         $ifPostExist = $wpdb->get_results("SELECT * FROM wp_yara_products WHERE title = '$product->title'");
         if(!$ifPostExist){
             $sql = $wpdb->INSERT('wp_yara_products', array(
-                'clicks' => 170,
+                'clicks' => 200,
                 'time' => $current_datetime,
                 'title' => $product->title,
                 'category' => $product->category,
                 'description' => $product->description,
                 'price' => $product->price,
-                'image_link' => $productImage
+                'image_link' => $productImage,
+                'souce_id' => $product->id,
             ));
             $wpdb->query($sql); 
             $yaraNewProducts++;
