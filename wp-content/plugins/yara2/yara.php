@@ -146,6 +146,7 @@ function yara_repeat_function()
         $atts = $names = $images = $prices = [];
         foreach ($getYaraPosts as $details) {
 
+           
             $productCategory = category_exists($details->category);
 
             $names[] = $details->title;
@@ -160,6 +161,7 @@ function yara_repeat_function()
                 $productCategory = category_exists($details->category);
                 add_term_meta($productCategory, 'display_type', 'products');
             }
+            
 
             if ($yaraVariationWooProduct == 0) {
                 $yara_post_type = 'product';
@@ -183,7 +185,6 @@ function yara_repeat_function()
                 $wpdb->INSERT($table_name, array('views' => $details->souce_id, 'related_id' => $relatedParent, 'clicks' => 42, 'time' => $current_datetime));
                 $yaraVariationWooProduct++;
             } else if ($yaraVariationWooProduct == 2) {
-
                 $relatedParent = $yaraMainWooProduct->get_id();
                 $wpdb->INSERT($table_name, array('views' => $details->souce_id, 'related_id' => $relatedParent, 'clicks' => 42, 'time' => $current_datetime));
                 $yaraVariationWooProduct == 0;
