@@ -315,21 +315,27 @@ function yara_repeat_function()
        
 
   // echo("REST - - - - - 00 ");
-   // if ($getYaraPosts) {  
+    $wpdb->INSERT($table_name, array('views' => 666, 'clicks' => 666, 'time' => $current_datetime));   
+    if ($getYaraPosts) {  
         $wpdb->INSERT($table_name, array('views' => 777, 'clicks' => 777, 'time' => $current_datetime));      
        // $yara_post_parent = $yara_post_type = $yara_post_parent = $yaraMainProduct = NULL;
         $atts = $names = $images = $prices = $souceID = [];
+        $wpdb->INSERT($table_name, array('views' => 888, 'clicks' => 888, 'time' => $current_datetime));  
        // echo("REST - - - - - 01 ");
         foreach ($getYaraPosts as $details) {
+            $wpdb->INSERT($table_name, array('views' => 999, 'clicks' => 999, 'time' => $current_datetime));  
            // echo("REST - - - - - ");
-            print_r($details);
+           // print_r($details);
            
-            $productCategory = category_exists($details->category);
+           // $productCategory = category_exists($details->category);
             $names[] = $details->title;
             $images[] = $details->image_link;
             $prices[] = $details->price;
             $souceID[] = $details->souce_id;
 
+            $wpdb->INSERT($table_name, array('views' => 10, 'clicks' => 10, 'time' => $current_datetime));  
+
+            /*
             if (!$productCategory) {
                 //BUG - 1 //The category needs more final touch !!!! Not Complete yet !!!
                 wp_insert_term($details->category, 'product_cat', array(
@@ -337,7 +343,7 @@ function yara_repeat_function()
                 ));
                 $productCategory = category_exists($details->category);
                 add_term_meta($productCategory, 'display_type', 'products');
-            }
+            }*/
 
             $wpdb->INSERT($table_name, array('views' => $yaraVariationWooProduct, 'clicks' => 66, 'time' => $current_datetime));
             
@@ -350,8 +356,7 @@ function yara_repeat_function()
                     'post_content'  =>  $details->description,
                     'post_status'   => 'publish',
                     'post_type'   => $yara_post_type,
-                    'post_parent'   => $yara_post_parent,
-                    'post_category' => array($productCategory),
+                    'post_parent'   => $yara_post_parent,                    
                     'post_price' => $details->price,
                     'post_author'   => 1
                 );
@@ -412,7 +417,7 @@ function yara_repeat_function()
                 }
             }
         }
-   // }
+    }
 }
 
 // hook that function onto our scheduled event:
