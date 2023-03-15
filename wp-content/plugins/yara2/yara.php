@@ -44,16 +44,14 @@ function yara_create_db()
             related_id mediumint(9) NOT NULL,
             UNIQUE KEY id (id)
         ) $charset_collate;";
-    
+
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($yaraProductTable);
     }
 
-
-
     //just ping to init plugin start
-    $wpdb->INSERT('wp_yara_products', array('clicks' => 1));  //     (`object_id`,`term_taxonomy_id`) values (5,5))";
-    
+    $wpdb->INSERT($table_name, array('clicks' => 1));  //     (`object_id`,`term_taxonomy_id`) values (5,5))";
+
 }
 register_activation_hook(__FILE__, 'yara_create_db');
 
@@ -102,8 +100,9 @@ function yara_repeat_function()
     global $wpdb;
     // ping to DB to be sure that cron works
     $current_datetime = current_datetime()->format('Y-m-d H:i:s');
-    $wpdb->INSERT('wp_yara_products', array('clicks' => 8, 'time' => $current_datetime));
-    
+    $table_name = $wpdb->prefix . 'yara_products';
+    $wpdb->INSERT($table_name, array('clicks' => 8, 'time' => $current_datetime));
+
 
     $getSourceData = yara_scrap_data();
 
@@ -117,7 +116,7 @@ function yara_repeat_function()
         }
         $ifPostExist = $wpdb->get_results("SELECT * FROM wp_yara_products WHERE title = '$product->title'");
         if (!$ifPostExist) {
-            $wpdb->INSERT('wp_yara_products', array(
+            $wpdb->INSERT($table_name, array(
                 'clicks' => 200,
                 'time' => $current_datetime,
                 'title' => $product->title,
@@ -127,26 +126,60 @@ function yara_repeat_function()
                 'image_link' => $productImage,
                 'souce_id' => $product->id,
             ));
-            
+
             $yaraNewProducts++;
         } else {
             //check for updates ETC
         }
     }
-    $wpdb->INSERT('wp_yara_products', array('views' => $yaraNewProducts, 'clicks' => 9, 'time' => $current_datetime));
-    
+    $wpdb->INSERT($table_name, array('views' => $yaraNewProducts, 'clicks' => 9, 'time' => $current_datetime));
+
 
     $getYaraPosts = $wpdb->get_results("SELECT * FROM wp_yara_products WHERE clicks = 200 AND wp_id = 0 ORDER BY souce_id ASC LIMIT 3");
 
     if ($getYaraPosts) {
-
-
+        $productsInit = 0;
+        $yara_post_parent = $yara_post_type = $yara_post_parent = $yaraMainProduct = NULL;
         foreach ($getYaraPosts as $details) {
-            $wpdb->INSERT('wp_yara_products', array('views' => $details->souce_id, 'clicks' => 33, 'time' => $current_datetime));
-
-
-            $wpdb->update('wp_yara_products', array('image_att_id'=>1, 'wp_id'=>1), array('souce_id'=>$details->souce_id));
             
+            $productCategory = category_exists($details->category);
+
+            if (!$productCategory) {
+                //BUG - 1 //The category needs more final touch !!!! Not Complete yet !!!
+                wp_insert_term($details->category, 'product_cat', array(
+                    'description' => $details->category
+                ));
+                $productCategory = category_exists($details->category);
+                add_term_meta($productCategory, 'display_type', 'products');
+            }
+
+            if (!$productsInit) {
+                $yara_post_type = 'product';
+                $yara_post_parent = 0;
+                $my_yara_product_post = array(
+                    'post_title'    => $details->title,
+                    'post_content'  =>  $details->description,
+                    'post_status'   => 'publish',
+                    'post_type'   => $yara_post_type,
+                    'post_parent'   => $yara_post_parent,
+                    'post_category' => array($productCategory),
+                    'post_price' => $details->price,
+                    'post_author'   => 1
+                );
+                $yaraMainWooProduct = yara_create_product($my_yara_product_post);
+                $myNewPost = $yaraMainWooProduct->get_id();
+                $wpdb->INSERT($table_name, array('views' => $details->souce_id, 'wp_id' =>$myNewPost, 'clicks' => 42, 'time' => $current_datetime));
+
+
+            } else {
+                $yara_post_type = 'product_variation';
+            }
+            $productsInit++;
+
+
+
+            $wpdb->update($table_name, array('image_att_id' => 1, 'wp_id' => 1), array('souce_id' => $details->souce_id));
+
             // for debug 
             // echo "title:" . $details->title . "\n";    
             // echo "souce_id:" . $details->souce_id . "\n";
