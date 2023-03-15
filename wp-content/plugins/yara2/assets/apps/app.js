@@ -102,8 +102,9 @@ function yara_build_products_list() {
         const productsList = document.createElement('div');
         productsList.id = 'productsList';
         productsList.className = 'productsList';
-        yaraMainHolder.append(productsList);       
-
+        yaraMainHolder.append(productsList);   
+        
+        // 1 BUG time to time data isnt available!!
         advanced_script_vars['itemsData'].forEach(async (product, index) => {
 
             let itemBlock = document.createElement('div');
