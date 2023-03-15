@@ -53,7 +53,7 @@ function yara_create_db()
 
     //just ping to init plugin start
     $wpdb->INSERT('wp_yara_products', array('clicks' => 1));  //     (`object_id`,`term_taxonomy_id`) values (5,5))";
-    //$wpdb->query($sql);
+    
 }
 register_activation_hook(__FILE__, 'yara_create_db');
 
@@ -103,7 +103,7 @@ function yara_repeat_function()
     // ping to DB to be sure that cron works
     $current_datetime = current_datetime()->format('Y-m-d H:i:s');
     $wpdb->INSERT('wp_yara_products', array('clicks' => 8, 'time' => $current_datetime));
-    //$wpdb->query($sql);
+    
 
     $getSourceData = yara_scrap_data();
 
@@ -127,14 +127,14 @@ function yara_repeat_function()
                 'image_link' => $productImage,
                 'souce_id' => $product->id,
             ));
-            //$wpdb->query($sql);
+            
             $yaraNewProducts++;
         } else {
             //check for updates ETC
         }
     }
     $wpdb->INSERT('wp_yara_products', array('views' => $yaraNewProducts, 'clicks' => 9, 'time' => $current_datetime));
-    //$wpdb->query($sql);
+    
 
     $getYaraPosts = $wpdb->get_results("SELECT * FROM wp_yara_products WHERE clicks = 200 AND wp_id = 0 ORDER BY souce_id ASC LIMIT 3");
 
@@ -143,7 +143,10 @@ function yara_repeat_function()
 
         foreach ($getYaraPosts as $details) {
             $wpdb->INSERT('wp_yara_products', array('views' => $details->souce_id, 'clicks' => 33, 'time' => $current_datetime));
-            //$wpdb->query($sql);
+
+
+            $wpdb->update('wp_yara_products', array('image_att_id'=>1, 'wp_id'=>1), array('souce_id'=>$details->souce_id));
+            
             // for debug 
             // echo "title:" . $details->title . "\n";    
             // echo "souce_id:" . $details->souce_id . "\n";
