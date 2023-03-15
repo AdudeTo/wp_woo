@@ -16,7 +16,7 @@ if (current_user_can('administrator')) {
         echo json_encode($list, JSON_PRETTY_PRINT);
     }
 } else {
-    echo "who are you";
+    echo ". . .";
 }
 
 

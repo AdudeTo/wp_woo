@@ -14,5 +14,5 @@ foreach ($getYaraPosts as $details) {
         'wp_id' => $details->wp_id,
         'image_att_id' => $details->image_att_id
       ];    
-} 
+}
 ?>

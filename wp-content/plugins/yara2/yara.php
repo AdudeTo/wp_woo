@@ -24,30 +24,36 @@ function yara_create_db()
     $charset_collate = $wpdb->get_charset_collate();
     $table_name = $wpdb->prefix . 'yara_products';
 
-    $sql = "CREATE TABLE $table_name (
-		id mediumint(9) NOT NULL AUTO_INCREMENT,
-		time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
-		views smallint(5) NOT NULL,
-		clicks smallint(5) NOT NULL,
-        title varchar(200) NOT NULL,
-        category varchar(200) NOT NULL,
-        description longtext NOT NULL,
-        price mediumint(9) NOT NULL,
-        image_link longtext NOT NULL,
-        image_att_id mediumint(9) NOT NULL,
-        yara_type varchar(50) NOT NULL,
-        wp_id mediumint(9) NOT NULL,
-        souce_id mediumint(9) NOT NULL,
-        related_id mediumint(9) NOT NULL,
-		UNIQUE KEY id (id)
-	) $charset_collate;";
+    $isYaraProductTable = $wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table_name));
 
-    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-    dbDelta($sql);
+    if (!$wpdb->get_var($isYaraProductTable) == $table_name) {
+        $yaraProductTable = "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+            views smallint(5) NOT NULL,
+            clicks smallint(5) NOT NULL,
+            title varchar(200) NOT NULL,
+            category varchar(200) NOT NULL,
+            description longtext NOT NULL,
+            price mediumint(9) NOT NULL,
+            image_link longtext NOT NULL,
+            image_att_id mediumint(9) NOT NULL,
+            yara_type varchar(50) NOT NULL,
+            wp_id mediumint(9) NOT NULL,
+            souce_id mediumint(9) NOT NULL,
+            related_id mediumint(9) NOT NULL,
+            UNIQUE KEY id (id)
+        ) $charset_collate;";
+    
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($yaraProductTable);
+    }
+
+
 
     //just ping to init plugin start
-    $sql = $wpdb->INSERT('wp_yara_products', array('clicks' => 1));  //     (`object_id`,`term_taxonomy_id`) values (5,5))";
-    $wpdb->query($sql);
+    $wpdb->INSERT('wp_yara_products', array('clicks' => 1));  //     (`object_id`,`term_taxonomy_id`) values (5,5))";
+    //$wpdb->query($sql);
 }
 register_activation_hook(__FILE__, 'yara_create_db');
 
@@ -59,7 +65,7 @@ function cron_add_minute($schedules)
 {
     // Adds once every 5 minutes 'interval' => 300 cant be less than 1min 60 to the existing schedules.
     $schedules['everyfiveminutes'] = array(
-        'interval' => 300,
+        'interval' => 60,
         'display' => __('Once Every 5 Minute')
     );
     return $schedules;
@@ -90,28 +96,28 @@ register_deactivation_hook(__FILE__, 'cronstarter_deactivate');
 
 
 // here's the function we'd like to call with our cron job  !!allow_url_fopen = On in php.ini or htaccess
-function my_repeat_function()
+function yara_repeat_function()
 {
-    
+
     global $wpdb;
     // ping to DB to be sure that cron works
     $current_datetime = current_datetime()->format('Y-m-d H:i:s');
-    $sql = $wpdb->INSERT('wp_yara_products', array('clicks' => 8, 'time' => $current_datetime));
-    $wpdb->query($sql);
+    $wpdb->INSERT('wp_yara_products', array('clicks' => 8, 'time' => $current_datetime));
+    //$wpdb->query($sql);
 
     $getSourceData = yara_scrap_data();
-    
+
 
     // DB Fields title category description price image_link image_att_id yara_type wp_id souce_id related_id
     $yaraNewProducts = 0;
     foreach ($getSourceData as $index => $product) {
         $productImage = 'empty';
         if ($product->images[0]) {
-            $productImage = htmlentities($product->images[0], ENT_COMPAT,'UTF-8', true);           
+            $productImage = htmlentities($product->images[0], ENT_COMPAT, 'UTF-8', true);
         }
         $ifPostExist = $wpdb->get_results("SELECT * FROM wp_yara_products WHERE title = '$product->title'");
-        if(!$ifPostExist){
-            $sql = $wpdb->INSERT('wp_yara_products', array(
+        if (!$ifPostExist) {
+            $wpdb->INSERT('wp_yara_products', array(
                 'clicks' => 200,
                 'time' => $current_datetime,
                 'title' => $product->title,
@@ -121,18 +127,42 @@ function my_repeat_function()
                 'image_link' => $productImage,
                 'souce_id' => $product->id,
             ));
-            $wpdb->query($sql); 
+            //$wpdb->query($sql);
             $yaraNewProducts++;
-        } else{
+        } else {
             //check for updates ETC
-        }   
+        }
     }
-    $sql = $wpdb->INSERT('wp_yara_products', array('views' => $yaraNewProducts, 'clicks' => 9, 'time' => $current_datetime));
-    $wpdb->query($sql);
+    $wpdb->INSERT('wp_yara_products', array('views' => $yaraNewProducts, 'clicks' => 9, 'time' => $current_datetime));
+    //$wpdb->query($sql);
+
+    $getYaraPosts = $wpdb->get_results("SELECT * FROM wp_yara_products WHERE clicks = 200 AND wp_id = 0 ORDER BY souce_id ASC LIMIT 3");
+
+    if ($getYaraPosts) {
+
+
+        foreach ($getYaraPosts as $details) {
+            $wpdb->INSERT('wp_yara_products', array('views' => $details->souce_id, 'clicks' => 33, 'time' => $current_datetime));
+            //$wpdb->query($sql);
+            // for debug 
+            // echo "title:" . $details->title . "\n";    
+            // echo "souce_id:" . $details->souce_id . "\n";
+            // echo "wp_id:" . $details->wp_id . "\n";
+            // echo "image_att_id:" . $details->image_att_id . "\n \n";
+            /*
+            $list[] = (object) [
+                'title' => $details->title,
+                'souce_id' => $details->souce_id,
+                'wp_id' => $details->wp_id,
+                'image_att_id' => $details->image_att_id
+            ];
+            */
+        }
+    }
 }
 
 // hook that function onto our scheduled event:
-add_action('yara_mycronjob', 'my_repeat_function');
+add_action('yara_mycronjob', 'yara_repeat_function');
 
 
 
