@@ -76,8 +76,7 @@ function retunr_message(header, content) {
 }
 
 function yara_product_constructor(yaraData) {
-    console.log(yaraData);
-
+    //console.log(yaraData);
     //yaraType
 
     let productHTML =
@@ -92,7 +91,7 @@ function yara_product_constructor(yaraData) {
         </br>
         <strong>price: ${yaraData.price} лв.</strong>
         </p>
-        <i></br></br><strong><u>status:</u></strong></br></i>
+        <i></br></br><strong><u>status: pending</u></strong></br></i>
     `
     return productHTML;
 }
@@ -103,24 +102,15 @@ function yara_build_products_list() {
         const productsList = document.createElement('div');
         productsList.id = 'productsList';
         productsList.className = 'productsList';
-        yaraMainHolder.append(productsList);
+        yaraMainHolder.append(productsList);       
 
         advanced_script_vars['itemsData'].forEach(async (product, index) => {
-            //console.log(index);
-            //console.log(product);
-
-            // let productsListContainer = document.getElementById(productsList);
-
-            if (index % 3 == 0) {
-                console.log("main product");
-            }
 
             let itemBlock = document.createElement('div');
             itemBlock.id = `yaraItem-${product.id}`;
             itemBlock.className = 'yaraItemBlock';
 
-            if (index % 3 == 0) {
-                console.log("main product");
+            if (index % 3 == 0) {                
                 itemBlock.classList.add("yaraMainProduct");
                 product.yaraType = "Main Product";
             } else {
@@ -137,31 +127,22 @@ function yara_build_products_list() {
 }
 
 
-
+let allProducts = 0;
+let sessionProducts = 0;
 async function loadYaraCronProducts() {
     let response = await fetch(`${yaraPluginDirUrl}assets/php/requests.php?p=stats`);
-    console.log('response');
-    console.log(response);
 
-    if(response == null){
-        return;
-    }
-    let products = await response.json();
-
-
-
+    let products = await response.json(); 
     //console.log(products);  
-    let result = Object.keys(products).map((key) => products[key]);
+    let result = Object.keys(products).map((key) => products[key]);   
+    if(result.length == 0){
+        //avoid errors
+    }
     result.forEach(async (item, n) => {
         //console.log(item);
+        let thisProductStat = 0;
         let currentItem = document.getElementById(`yaraItem-${item.souce_id}`);
         let currentItemImage = document.getElementById(`yaraItem-${item.souce_id}`).querySelector('img');
-
-        //yaraObj.innerHTML = retunr_message(yaraData.header, yaraData.content);
-        //messagesData['postcreate'] = {postinprogress: "Post in Progress", postdone: "Post was created", imageinprogress: "Image in progress", imagedone: "Image was created"};
-
-        currentItem.classList.remove('inProgress');
-        currentItemImage.classList.remove('inProgress');
         let postStatus = "</br></br><strong><u>status:</u></strong></br>";
 
         if (item.wp_id == 0) {
@@ -169,16 +150,23 @@ async function loadYaraCronProducts() {
             currentItem.classList.add('inProgress');
         } else {
             postStatus += "<span class='green'><strong>" + messagesData['postcreate'].postdone + "</strong></span></br>";
+            thisProductStat++;
+            currentItem.classList.remove('inProgress');            
         }
-
 
         if (item.image_att_id == 0) {
             postStatus += messagesData['postcreate'].imageinprogress + "</br>";
             currentItemImage.classList.add('inProgress');
         } else {
             postStatus += "<span class='green'><strong>" + messagesData['postcreate'].imagedone + "</strong></span></br>";
+            currentItemImage.classList.remove('inProgress');
+            thisProductStat++;
         }
         currentItem.querySelector('i').innerHTML = postStatus;
+        if(thisProductStat == 2){
+            sessionProducts++;
+            allProducts++;
+        }
     });
 }
 
