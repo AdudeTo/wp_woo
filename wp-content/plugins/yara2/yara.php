@@ -92,12 +92,16 @@ function cronstarter_deactivate()
 register_deactivation_hook(__FILE__, 'cronstarter_deactivate');
 
 
+$yaraMainProduct = array("ID" => 0, "title" => "none");
+$yaraMainWooProduct;
+$yaraVariationWooProduct = 0;
+$yaraTotalProducts = 0;
 
 // here's the function we'd like to call with our cron job  !!allow_url_fopen = On in php.ini or htaccess
 function yara_repeat_function()
 {
 
-    global $wpdb;
+    global $wpdb, $yaraMainWooProduct;
     // ping to DB to be sure that cron works
     $current_datetime = current_datetime()->format('Y-m-d H:i:s');
     $table_name = $wpdb->prefix . 'yara_products';
@@ -135,7 +139,7 @@ function yara_repeat_function()
     $wpdb->INSERT($table_name, array('views' => $yaraNewProducts, 'clicks' => 9, 'time' => $current_datetime));
 
 
-    $getYaraPosts = $wpdb->get_results("SELECT * FROM wp_yara_products WHERE clicks = 200 AND wp_id = 0 ORDER BY souce_id ASC LIMIT 3");
+    $getYaraPosts = $wpdb->get_results("SELECT * FROM $table_name WHERE clicks = 200 AND wp_id = 0 ORDER BY souce_id ASC LIMIT 3");
 
     if ($getYaraPosts) {
         $productsInit = 0;
@@ -169,7 +173,6 @@ function yara_repeat_function()
                 $yaraMainWooProduct = yara_create_product($my_yara_product_post);
                 $myNewPost = $yaraMainWooProduct->get_id();
                 $wpdb->INSERT($table_name, array('views' => $details->souce_id, 'wp_id' =>$myNewPost, 'clicks' => 42, 'time' => $current_datetime));
-
 
             } else {
                 $yara_post_type = 'product_variation';
@@ -310,10 +313,7 @@ function bg_image_upload($url, $productTitle)
 }
 
 
-$yaraMainProduct = array("ID" => 0, "title" => "none");
-$yaraMainWooProduct;
-$yaraVariationWooProduct = 0;
-$yaraTotalProducts = 0;
+
 
 
 function yara_create_product($data)
