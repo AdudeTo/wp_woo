@@ -101,7 +101,7 @@ $yaraTotalProducts = 0;
 function yara_repeat_function()
 {
 
-    global $wpdb, $yaraMainWooProduct;
+    global $wpdb, $yaraMainWooProduct,$yaraVariationWooProduct;
     // ping to DB to be sure that cron works
     $current_datetime = current_datetime()->format('Y-m-d H:i:s');
     $table_name = $wpdb->prefix . 'yara_products';
@@ -113,6 +113,8 @@ function yara_repeat_function()
 
     // DB Fields title category description price image_link image_att_id yara_type wp_id souce_id related_id
     $yaraNewProducts = 0;
+
+
     foreach ($getSourceData as $index => $product) {
         $productImage = 'empty';
         if ($product->images[0]) {
@@ -144,9 +146,14 @@ function yara_repeat_function()
     if ($getYaraPosts) {
         $productsInit = 0;
         $yara_post_parent = $yara_post_type = $yara_post_parent = $yaraMainProduct = NULL;
+        $atts = $names = $images = $prices = [];
         foreach ($getYaraPosts as $details) {
             
             $productCategory = category_exists($details->category);
+
+            $names[] = $details->title;
+            $images[] = $details->image_link;
+            $prices[] = $details->price;
 
             if (!$productCategory) {
                 //BUG - 1 //The category needs more final touch !!!! Not Complete yet !!!
@@ -157,7 +164,7 @@ function yara_repeat_function()
                 add_term_meta($productCategory, 'display_type', 'products');
             }
 
-            if (!$productsInit) {
+            if (!$yaraVariationWooProduct) {
                 $yara_post_type = 'product';
                 $yara_post_parent = 0;
                 $my_yara_product_post = array(
@@ -174,14 +181,44 @@ function yara_repeat_function()
                 $myNewPost = $yaraMainWooProduct->get_id();
                 $wpdb->INSERT($table_name, array('views' => $details->souce_id, 'wp_id' =>$myNewPost, 'clicks' => 42, 'time' => $current_datetime));
 
-            } else {
-                $yara_post_type = 'product_variation';
+            }else if ($yaraVariationWooProduct == 1) {
+                $yaraVariationWooProduct++;
+            }else{
+                if ($yaraMainWooProduct) {
+                    // BUG 2 function need lowercase string without whitespaces .. name can be updated after options was created by ID
+                    $anOption = strtolower(str_replace(array('\'', '"', ',', ';', '<', '>', '.', ' '), '_',  $names[0]));
+                    $atts[] = yara_create_attributes($anOption, $names);
+
+                    $yaraMainWooProduct->set_attributes($atts);
+                    $yaraMainWooProduct->save();
+                    foreach ($names as $index => $name) {
+
+                        $options_data = new stdClass();
+                        $options_data->sku = $name;
+                        $options_data->price = $prices[$index];
+                        //Create variations
+                        $yaraNewVariation = yara_create_variations($yaraMainWooProduct->get_id(), [$anOption => $name], $options_data);
+                        if ($images[$index]) {
+                            $myProductImageId = bg_image_upload($images[$index], $product->title);
+                            if (!add_post_meta($yaraNewVariation->get_id(), '_thumbnail_id', $myProductImageId, true)) {
+                                update_post_meta($yaraNewVariation->get_id(), '_thumbnail_id', $myProductImageId);
+                            }
+                        }
+                    }
+                    $yaraVariationWooProduct = 0;
+                    $atts = $names = $images = $prices = [];
+                }
+
+
+
             }
-            $productsInit++;
+            
 
 
 
             $wpdb->update($table_name, array('image_att_id' => 1, 'wp_id' => 1), array('souce_id' => $details->souce_id));
+
+            $yaraVariationWooProduct++;
 
             // for debug 
             // echo "title:" . $details->title . "\n";    
